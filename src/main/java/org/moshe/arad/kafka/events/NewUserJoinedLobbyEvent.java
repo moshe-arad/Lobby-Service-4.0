@@ -1,6 +1,7 @@
 package org.moshe.arad.kafka.events;
 
 import java.util.Date;
+import java.util.UUID;
 
 import org.moshe.arad.entities.BackgammonUser;
 
@@ -11,15 +12,15 @@ public class NewUserJoinedLobbyEvent extends BackgammonEvent {
 	public NewUserJoinedLobbyEvent() {
 	}
 
-	public NewUserJoinedLobbyEvent(int serviceId, String serviceName, int entityId, String entityType, int eventId,
-			String eventType, BackgammonUser backgammonUser) {
-		super(serviceId, serviceName, entityId, entityType, eventId, eventType);
+	public NewUserJoinedLobbyEvent(UUID uuid, int serviceId, String serviceName, int entityId, String entityType,
+			int eventId, String eventType, Date arrived, BackgammonUser backgammonUser) {
+		super(uuid, serviceId, serviceName, entityId, entityType, eventId, eventType, arrived);
 		this.backgammonUser = backgammonUser;
 	}
 
-	public NewUserJoinedLobbyEvent(int serviceId, String serviceName, int entityId, String entityType, int eventId,
-			String eventType, BackgammonUser backgammonUser, Date arrived) {
-		super(serviceId, serviceName, entityId, entityType, eventId, eventType, arrived);
+	public NewUserJoinedLobbyEvent(UUID uuid, int serviceId, String serviceName, int entityId, String entityType,
+			int eventId, String eventType, BackgammonUser backgammonUser) {
+		super(uuid, serviceId, serviceName, entityId, entityType, eventId, eventType);
 		this.backgammonUser = backgammonUser;
 	}
 

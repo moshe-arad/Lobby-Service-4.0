@@ -4,13 +4,12 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.moshe.arad.entities.BackgammonUser;
 import org.moshe.arad.entities.Location;
-import org.moshe.arad.kafka.events.EventFactory;
-import org.moshe.arad.kafka.events.Events;
 import org.moshe.arad.kafka.events.NewUserCreatedEvent;
 
 public class NewUserCreatedEventDeserializer implements Deserializer<NewUserCreatedEvent>{
@@ -46,11 +45,10 @@ public class NewUserCreatedEventDeserializer implements Deserializer<NewUserCrea
             String email = deserializeString(buf); 
             String location = deserializeString(buf); 
             Date date = new Date(buf.getLong());
+            UUID uuid = new UUID(buf.getLong(), buf.getLong());
             
-            return (NewUserCreatedEvent) EventFactory.getEvent(Events.NewUserCreatedEventWithSameDate, 
-            		new BackgammonUser(userName, password, firstName, lastName, email, Location.valueOf(location)), 
-            		date);
-            	            		           
+            NewUserCreatedEvent newUserCreatedEvent = new NewUserCreatedEvent(uuid, 1, "Users Service", 1, "User", 1, "NewUserCreatedEvent", date, new BackgammonUser(userName, password, firstName, lastName, email, Location.valueOf(location)));         
+            return newUserCreatedEvent;	            		           
             
         } catch (Exception e) {
             throw new SerializationException("Error when deserializing byte[] to CreateNewUserCommand");

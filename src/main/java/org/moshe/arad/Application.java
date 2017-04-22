@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class Application implements ApplicationRunner {
 
 	@Autowired
-	private Lobby lobby;
+	private AppInit appInit;
 	
 	private Logger logger = LoggerFactory.getLogger(Application.class);
 	
@@ -25,14 +25,14 @@ public class Application implements ApplicationRunner {
 	
 	@Override
 	public void run(ApplicationArguments arg0) throws Exception {
-		lobby.acceptNewEvents();
+		appInit.acceptNewEvents();
 	}
 	
 	@RequestMapping("/shutdown")
 	public ResponseEntity<String> shutdown(){
 		try{
 			logger.info("about to do shutdown.");
-			lobby.shutdown();
+			appInit.shutdown();
 			logger.info("shutdown compeleted.");
 			return new ResponseEntity<String>("", HttpStatus.OK);
 		}

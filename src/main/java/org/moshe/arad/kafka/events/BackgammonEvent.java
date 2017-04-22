@@ -1,9 +1,11 @@
 package org.moshe.arad.kafka.events;
 
 import java.util.Date;
+import java.util.UUID;
 
 public abstract class BackgammonEvent {
 
+	private UUID uuid;
 	private int serviceId;
 	private String serviceName;
 	private int entityId;
@@ -16,8 +18,9 @@ public abstract class BackgammonEvent {
 	public BackgammonEvent() {
 	}
 
-	public BackgammonEvent(int serviceId, String serviceName, int entityId, String entityType, int eventId,
+	public BackgammonEvent(UUID uuid, int serviceId, String serviceName, int entityId, String entityType, int eventId,
 			String eventType) {
+		this.uuid = uuid;
 		this.serviceId = serviceId;
 		this.serviceName = serviceName;
 		this.entityId = entityId;
@@ -27,9 +30,10 @@ public abstract class BackgammonEvent {
 		this.arrived = new Date();
 	}
 
-	public BackgammonEvent(int serviceId, String serviceName, int entityId, String entityType, int eventId,
+	public BackgammonEvent(UUID uuid, int serviceId, String serviceName, int entityId, String entityType, int eventId,
 			String eventType, Date arrived) {
 		super();
+		this.uuid = uuid;
 		this.serviceId = serviceId;
 		this.serviceName = serviceName;
 		this.entityId = entityId;
@@ -41,9 +45,9 @@ public abstract class BackgammonEvent {
 
 	@Override
 	public String toString() {
-		return "BackgammonEvent [serviceId=" + serviceId + ", serviceName=" + serviceName + ", entityId=" + entityId
-				+ ", entityType=" + entityType + ", eventId=" + eventId + ", eventType=" + eventType + ", arrived="
-				+ arrived + ", departed=" + departed + "]";
+		return "BackgammonEvent [uuid=" + uuid + ", serviceId=" + serviceId + ", serviceName=" + serviceName
+				+ ", entityId=" + entityId + ", entityType=" + entityType + ", eventId=" + eventId + ", eventType="
+				+ eventType + ", arrived=" + arrived + ", departed=" + departed + "]";
 	}
 
 	public int getServiceId() {
@@ -108,5 +112,13 @@ public abstract class BackgammonEvent {
 
 	public void setDeparted(Date departed) {
 		this.departed = departed;
-	}	
+	}
+
+	public UUID getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(UUID uuid) {
+		this.uuid = uuid;
+	}
 }
