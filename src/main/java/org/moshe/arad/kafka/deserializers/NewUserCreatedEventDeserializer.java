@@ -47,7 +47,7 @@ public class NewUserCreatedEventDeserializer implements Deserializer<NewUserCrea
             Date date = new Date(buf.getLong());
             UUID uuid = new UUID(buf.getLong(), buf.getLong());
             
-            NewUserCreatedEvent newUserCreatedEvent = new NewUserCreatedEvent(uuid, 1, "Users Service", 1, "User", 1, "NewUserCreatedEvent", date, new BackgammonUser(userName, password, firstName, lastName, email, Location.valueOf(location)));         
+            NewUserCreatedEvent newUserCreatedEvent = new NewUserCreatedEvent(uuid, 1, 1, date, new BackgammonUser(userName, password, firstName, lastName, email, Location.valueOf(location)));         
             return newUserCreatedEvent;	            		           
             
         } catch (Exception e) {

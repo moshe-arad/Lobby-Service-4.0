@@ -12,16 +12,14 @@ public class NewUserJoinedLobbyEvent extends BackgammonEvent {
 	public NewUserJoinedLobbyEvent() {
 	}
 
-	public NewUserJoinedLobbyEvent(UUID uuid, int serviceId, String serviceName, int entityId, String entityType,
-			int eventId, String eventType, Date arrived, BackgammonUser backgammonUser) {
-		super(uuid, serviceId, serviceName, entityId, entityType, eventId, eventType, arrived);
+	public NewUserJoinedLobbyEvent(UUID uuid, int serviceId, int eventId, Date arrived, BackgammonUser backgammonUser) {
+		super(uuid, serviceId, eventId, arrived);
 		this.backgammonUser = backgammonUser;
 	}
 
-	public NewUserJoinedLobbyEvent(UUID uuid, int serviceId, String serviceName, int entityId, String entityType,
-			int eventId, String eventType, BackgammonUser backgammonUser) {
-		super(uuid, serviceId, serviceName, entityId, entityType, eventId, eventType);
-		this.backgammonUser = backgammonUser;
+	@Override
+	public String toString() {
+		return "NewUserJoinedLobbyEvent [backgammonUser=" + backgammonUser + "]";
 	}
 
 	public BackgammonUser getBackgammonUser() {
