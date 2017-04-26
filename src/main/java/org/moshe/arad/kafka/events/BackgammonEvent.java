@@ -9,22 +9,25 @@ public abstract class BackgammonEvent {
 	private int serviceId;
 	private int eventId;
 	private Date arrived;
+	private String clazz;
 	
 	public BackgammonEvent() {
 	}
 	
-	public BackgammonEvent(UUID uuid, int serviceId, int eventId, Date arrived) {
+	public BackgammonEvent(UUID uuid, int serviceId, int eventId, Date arrived, String clazz) {
 		super();
 		this.uuid = uuid;
 		this.serviceId = serviceId;
 		this.eventId = eventId;
 		this.arrived = arrived;
+		this.clazz = clazz;
 	}
 
+	
 	@Override
 	public String toString() {
 		return "BackgammonEvent [uuid=" + uuid + ", serviceId=" + serviceId + ", eventId=" + eventId + ", arrived="
-				+ arrived + "]";
+				+ arrived + ", clazz=" + clazz + "]";
 	}
 
 	public int getServiceId() {

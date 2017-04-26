@@ -38,7 +38,7 @@ public class NewUserCreatedEventConsumer extends SimpleEventsConsumer {
     	logger.info("User added to lobby...");
     	logger.info("creating new user joined lobby event...");
     	NewUserJoinedLobbyEvent newUserJoinedLobbyEvent = new NewUserJoinedLobbyEvent(newUserCreatedEvent.getUuid(), 
-    			2, 2, new Date(), newUserCreatedEvent.getBackgammonUser());
+    			2, 2, new Date(),"newUserJoinedLobbyEvent", newUserCreatedEvent.getBackgammonUser());
     	logger.info("passing new user joined lobby event to producer...");
     	consumerToProducerQueue.getEventsQueue().put(newUserJoinedLobbyEvent);
 	}

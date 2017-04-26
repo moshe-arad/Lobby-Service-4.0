@@ -12,8 +12,9 @@ public class NewUserJoinedLobbyEvent extends BackgammonEvent {
 	public NewUserJoinedLobbyEvent() {
 	}
 
-	public NewUserJoinedLobbyEvent(UUID uuid, int serviceId, int eventId, Date arrived, BackgammonUser backgammonUser) {
-		super(uuid, serviceId, eventId, arrived);
+	public NewUserJoinedLobbyEvent(UUID uuid, int serviceId, int eventId, Date arrived, String clazz,
+			BackgammonUser backgammonUser) {
+		super(uuid, serviceId, eventId, arrived, clazz);
 		this.backgammonUser = backgammonUser;
 	}
 

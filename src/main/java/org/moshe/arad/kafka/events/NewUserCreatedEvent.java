@@ -9,8 +9,9 @@ public class NewUserCreatedEvent extends BackgammonEvent {
 
 	BackgammonUser backgammonUser;
 
-	public NewUserCreatedEvent(UUID uuid, int serviceId, int eventId, Date arrived, BackgammonUser backgammonUser) {
-		super(uuid, serviceId, eventId, arrived);
+	public NewUserCreatedEvent(UUID uuid, int serviceId, int eventId, Date arrived, String clazz,
+			BackgammonUser backgammonUser) {
+		super(uuid, serviceId, eventId, arrived, clazz);
 		this.backgammonUser = backgammonUser;
 	}
 

@@ -3,8 +3,10 @@ package org.moshe.arad.kafka.producers.config;
 import java.util.Properties;
 
 import org.moshe.arad.kafka.KafkaUtils;
+import org.springframework.stereotype.Component;
 
-public abstract class SimpleProducerConfig {
+@Component
+public class SimpleProducerConfig {
 
 	private Properties properties = new Properties();
 	
