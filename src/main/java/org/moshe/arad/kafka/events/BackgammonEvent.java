@@ -61,4 +61,12 @@ public abstract class BackgammonEvent {
 	public void setUuid(UUID uuid) {
 		this.uuid = uuid;
 	}
+
+	public String getClazz() {
+		return clazz;
+	}
+
+	public void setClazz(String clazz) {
+		this.clazz = clazz;
+	}	
 }
