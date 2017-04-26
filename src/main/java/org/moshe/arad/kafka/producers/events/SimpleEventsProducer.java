@@ -1,4 +1,4 @@
-package org.moshe.arad.kafka.producers;
+package org.moshe.arad.kafka.producers.events;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -9,6 +9,8 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.moshe.arad.kafka.ConsumerToProducerQueue;
 import org.moshe.arad.kafka.events.BackgammonEvent;
+import org.moshe.arad.kafka.producers.ISimpleProducer;
+import org.moshe.arad.kafka.producers.config.SimpleProducerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;

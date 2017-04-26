@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * 
  * important to set properties and topic before usage
  */
-public abstract class SimpleEventsConsumer implements Runnable, ISimpleConsumer {
+public abstract class SimpleEventsConsumer implements Runnable, ISimpleEventConsumer {
 
 	Logger logger = LoggerFactory.getLogger(SimpleEventsConsumer.class);
 	private static final int CONSUMERS_NUM = 3;
