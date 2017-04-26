@@ -1,4 +1,4 @@
-package org.moshe.arad;
+package org.moshe.arad.services;
 
 import java.util.HashMap;
 import java.util.Map;

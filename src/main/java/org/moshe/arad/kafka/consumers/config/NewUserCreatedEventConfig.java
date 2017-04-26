@@ -10,6 +10,5 @@ public class NewUserCreatedEventConfig extends SimpleConsumerConfig{
 	public NewUserCreatedEventConfig() {
 		super();
 		super.getProperties().put("group.id", KafkaUtils.NEW_USER_CREATED_EVENT_GROUP);
-		super.getProperties().put("value.deserializer", KafkaUtils.NEW_USER_CREATED_EVENT_DESERIALIZER);
 	}
 }
