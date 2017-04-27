@@ -106,6 +106,7 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	private void shutdownSingleConsumer(ISimpleConsumer consumer) {
 		consumer.setRunning(false);
 		consumer.getScheduledExecutor().shutdown();	
+		consumer.closeConsumer();
 	}
 	
 	private void shutdownSingleProducer(ISimpleProducer producer) {

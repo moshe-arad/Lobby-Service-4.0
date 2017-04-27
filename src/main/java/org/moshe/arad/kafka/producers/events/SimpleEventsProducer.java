@@ -86,15 +86,7 @@ public class SimpleEventsProducer <T extends BackgammonEvent> implements ISimple
 	
 	@SuppressWarnings("unchecked")
 	private void takeMessagesFromConsumersAndPass(int numJobs){
-		while(scheduledExecutor.getQueue().size() < numJobs){
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e1) {
-				e1.printStackTrace();
-			}
-			
-			if(scheduledExecutor.getActiveCount() == numJobs) continue;
-			
+		for(int i=0; i<numJobs; i++){
 			scheduledExecutor.scheduleAtFixedRate(() -> {
 				while(isRunning){
 					try {						

@@ -18,4 +18,6 @@ public interface ISimpleConsumer {
 	public ScheduledThreadPoolExecutor getScheduledExecutor();
 
 	public void setConsumerToProducerQueue(ConsumerToProducerQueue consumerToProducerQueue);
+
+	public void closeConsumer();
 }
