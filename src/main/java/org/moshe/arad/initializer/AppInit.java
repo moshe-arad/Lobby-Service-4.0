@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppInit implements ApplicationContextAware, IAppInitializer {	
 	
-	@Autowired
+//	@Autowired
 	private NewUserCreatedEventConsumer newUserCreatedEventConsumer;
 	
 	@Autowired
@@ -46,6 +46,8 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	
 	private ConsumerToProducerQueue consumerToProducerQueue;
 	
+	public static final int NUM_CONSUMERS = 3;
+	
 	@Override
 	public void initKafkaCommandsConsumers() {
 	
@@ -55,11 +57,14 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	public void initKafkaEventsConsumers() {	
 		consumerToProducerQueue = context.getBean(ConsumerToProducerQueue.class);
 		
-		logger.info("Initializing new user created event consumer...");
-		initSingleConsumer(newUserCreatedEventConsumer, KafkaUtils.NEW_USER_CREATED_EVENT_TOPIC, newUserCreatedEventConfig, consumerToProducerQueue);
-		logger.info("Initialize new user created event, completed...");
-		
-		executeProducersAndConsumers(Arrays.asList(newUserCreatedEventConsumer));		
+		for(int i=0; i<NUM_CONSUMERS; i++){
+			newUserCreatedEventConsumer = context.getBean(NewUserCreatedEventConsumer.class);
+			logger.info("Initializing new user created event consumer...");
+			initSingleConsumer(newUserCreatedEventConsumer, KafkaUtils.NEW_USER_CREATED_EVENT_TOPIC, newUserCreatedEventConfig, consumerToProducerQueue);
+			logger.info("Initialize new user created event, completed...");
+			
+			executeProducersAndConsumers(Arrays.asList(newUserCreatedEventConsumer));
+		}
 	}
 
 	@Override

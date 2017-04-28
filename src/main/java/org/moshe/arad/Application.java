@@ -11,8 +11,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
+@RestController
 public class Application implements ApplicationRunner {
 
 	@Autowired
@@ -31,7 +33,12 @@ public class Application implements ApplicationRunner {
 	
 	@RequestMapping("/shutdown")
 	public ResponseEntity<String> shutdown(){
-		return doShutdown();
+		try{
+			return doShutdown();
+		}
+		finally {
+			System.exit(1);
+		}		
 	}
 	
 	private ResponseEntity<String> doShutdown(){
