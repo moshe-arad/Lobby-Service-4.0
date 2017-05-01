@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppInit implements ApplicationContextAware, IAppInitializer {	
 	
-//	@Autowired
 	private NewUserCreatedEventConsumer newUserCreatedEventConsumer;
 	
 	@Autowired
@@ -34,9 +33,6 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	
 	@Autowired
 	private SimpleEventsProducer<NewUserJoinedLobbyEvent> newUserJoinedLobbyEventsProducer;
-	
-	@Autowired
-	private SimpleProducerConfig newUserJoinedLobbyEventConfig;
 	
 	private ExecutorService executor = Executors.newFixedThreadPool(6);
 	
@@ -75,7 +71,7 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	@Override
 	public void initKafkaEventsProducers() {
 		logger.info("Initializing new user created event consumer...");
-		initSingleProducer(newUserJoinedLobbyEventsProducer, KafkaUtils.NEW_USER_JOINED_LOBBY_EVENT_TOPIC, newUserJoinedLobbyEventConfig, consumerToProducerQueue);
+		initSingleProducer(newUserJoinedLobbyEventsProducer, KafkaUtils.NEW_USER_JOINED_LOBBY_EVENT_TOPIC, consumerToProducerQueue);
 		logger.info("Initialize new user created event, completed...");
 		
 		executeProducersAndConsumers(Arrays.asList(newUserJoinedLobbyEventsProducer));		
@@ -102,9 +98,8 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		consumer.setConsumerToProducerQueue(queue);
 	}
 	
-	private void initSingleProducer(ISimpleProducer producer, String topic, SimpleProducerConfig consumerConfig, ConsumerToProducerQueue queue) {
-		producer.setTopic(topic);
-		producer.setSimpleProducerConfig(consumerConfig);	
+	private void initSingleProducer(ISimpleProducer producer, String topic, ConsumerToProducerQueue queue) {
+		producer.setTopic(topic);	
 		producer.setConsumerToProducerQueue(queue);
 	}
 	
