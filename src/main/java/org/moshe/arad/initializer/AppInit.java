@@ -8,12 +8,14 @@ import java.util.concurrent.Executors;
 import org.moshe.arad.kafka.ConsumerToProducerQueue;
 import org.moshe.arad.kafka.KafkaUtils;
 import org.moshe.arad.kafka.consumers.ISimpleConsumer;
+import org.moshe.arad.kafka.consumers.config.LoggedInEventConfig;
 import org.moshe.arad.kafka.consumers.config.NewUserCreatedEventConfig;
 import org.moshe.arad.kafka.consumers.config.SimpleConsumerConfig;
+import org.moshe.arad.kafka.consumers.events.LoggedInEventConsumer;
 import org.moshe.arad.kafka.consumers.events.NewUserCreatedEventConsumer;
+import org.moshe.arad.kafka.events.ExistingUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.events.NewUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.producers.ISimpleProducer;
-import org.moshe.arad.kafka.producers.config.SimpleProducerConfig;
 import org.moshe.arad.kafka.producers.events.SimpleEventsProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,14 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	@Autowired
 	private SimpleEventsProducer<NewUserJoinedLobbyEvent> newUserJoinedLobbyEventsProducer;
 	
+	private LoggedInEventConsumer loggedInEventConsumer;
+	
+	@Autowired
+	private LoggedInEventConfig loggedInEventConfig;
+	
+	@Autowired
+	private SimpleEventsProducer<ExistingUserJoinedLobbyEvent> existingUserJoinedLobbyEventsProducer;
+	
 	private ExecutorService executor = Executors.newFixedThreadPool(6);
 	
 	private Logger logger = LoggerFactory.getLogger(AppInit.class);
@@ -41,6 +51,8 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	private ApplicationContext context;
 	
 	private ConsumerToProducerQueue consumerToProducerQueue;
+	
+	private ConsumerToProducerQueue loggedInEventQueue;
 	
 	public static final int NUM_CONSUMERS = 3;
 	
@@ -52,6 +64,7 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	@Override
 	public void initKafkaEventsConsumers() {	
 		consumerToProducerQueue = context.getBean(ConsumerToProducerQueue.class);
+		loggedInEventQueue = context.getBean(ConsumerToProducerQueue.class);
 		
 		for(int i=0; i<NUM_CONSUMERS; i++){
 			newUserCreatedEventConsumer = context.getBean(NewUserCreatedEventConsumer.class);
@@ -59,7 +72,10 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 			initSingleConsumer(newUserCreatedEventConsumer, KafkaUtils.NEW_USER_CREATED_EVENT_TOPIC, newUserCreatedEventConfig, consumerToProducerQueue);
 			logger.info("Initialize new user created event, completed...");
 			
-			executeProducersAndConsumers(Arrays.asList(newUserCreatedEventConsumer));
+			loggedInEventConsumer = context.getBean(LoggedInEventConsumer.class);
+			initSingleConsumer(loggedInEventConsumer, KafkaUtils.LOGGED_IN_EVENT_TOPIC, loggedInEventConfig, loggedInEventQueue);
+			
+			executeProducersAndConsumers(Arrays.asList(newUserCreatedEventConsumer, loggedInEventConsumer));
 		}
 	}
 
@@ -74,7 +90,8 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		initSingleProducer(newUserJoinedLobbyEventsProducer, KafkaUtils.NEW_USER_JOINED_LOBBY_EVENT_TOPIC, consumerToProducerQueue);
 		logger.info("Initialize new user created event, completed...");
 		
-		executeProducersAndConsumers(Arrays.asList(newUserJoinedLobbyEventsProducer));		
+		initSingleProducer(existingUserJoinedLobbyEventsProducer, KafkaUtils.EXISTING_USER_JOINED_LOBBY_EVENT_TOPIC, loggedInEventQueue);
+		executeProducersAndConsumers(Arrays.asList(newUserJoinedLobbyEventsProducer, existingUserJoinedLobbyEventsProducer));		
 	}
 
 	@Override
