@@ -7,18 +7,18 @@ public class BackgammonUser {
 	private String firstName;
 	private String lastName;
 	private String email;
-	private Location location;
+	private Status status;
 
 	public BackgammonUser() {
 	}
 	
-	public BackgammonUser(String userName, String password, String firstName, String lastName, String email, Location location) {
+	public BackgammonUser(String userName, String password, String firstName, String lastName, String email, Status status) {
 		this.userName = userName;
 		this.password = password;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
-		this.location = location; 
+		this.status = status; 
 	}
 	
 	@Override
@@ -28,7 +28,7 @@ public class BackgammonUser {
 		result = prime * result + ((email == null) ? 0 : email.hashCode());
 		result = prime * result + ((firstName == null) ? 0 : firstName.hashCode());
 		result = prime * result + ((lastName == null) ? 0 : lastName.hashCode());
-		result = prime * result + ((location == null) ? 0 : location.hashCode());
+		result = prime * result + ((status == null) ? 0 : status.hashCode());
 		result = prime * result + ((password == null) ? 0 : password.hashCode());
 		result = prime * result + ((userName == null) ? 0 : userName.hashCode());
 		return result;
@@ -58,7 +58,7 @@ public class BackgammonUser {
 				return false;
 		} else if (!lastName.equals(other.lastName))
 			return false;
-		if (location != other.location)
+		if (status != other.status)
 			return false;
 		if (password == null) {
 			if (other.password != null)
@@ -76,7 +76,7 @@ public class BackgammonUser {
 	@Override
 	public String toString() {
 		return "BackgammonUser [userName=" + userName + ", password=" + password + ", firstName=" + firstName
-				+ ", lastName=" + lastName + ", email=" + email + ", location=" + location + "]";
+				+ ", lastName=" + lastName + ", email=" + email + ", location=" + status + "]";
 	}
 
 	public String getUserName() {
@@ -119,11 +119,11 @@ public class BackgammonUser {
 		this.email = email;
 	}
 
-	public Location getLocation() {
-		return location;
+	public Status getStatus() {
+		return status;
 	}
 
-	public void setLocation(Location location) {
-		this.location = location;
-	}	
+	public void setStatus(Status status) {
+		this.status = status;
+	}
 }

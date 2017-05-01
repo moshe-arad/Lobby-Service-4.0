@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.util.Date;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.moshe.arad.entities.Location;
+import org.moshe.arad.entities.Status;
 import org.moshe.arad.kafka.ConsumerToProducerQueue;
-import org.moshe.arad.kafka.consumers.config.SimpleConsumerConfig;
 import org.moshe.arad.kafka.events.NewUserCreatedEvent;
 import org.moshe.arad.kafka.events.NewUserJoinedLobbyEvent;
 import org.moshe.arad.services.Lobby;
@@ -40,7 +39,7 @@ public class NewUserCreatedEventConsumer extends SimpleEventsConsumer {
     	lobby.addBackgammonUserToLobby(newUserCreatedEvent.getBackgammonUser());
     	logger.info("User added to lobby...");
     	logger.info("creating new user joined lobby event...");
-    	newUserCreatedEvent.getBackgammonUser().setLocation(Location.Lobby);
+    	newUserCreatedEvent.getBackgammonUser().setStatus(Status.InLobby);
     	NewUserJoinedLobbyEvent newUserJoinedLobbyEvent = new NewUserJoinedLobbyEvent(newUserCreatedEvent.getUuid(), 
     			2, 2, new Date(),"newUserJoinedLobbyEvent", newUserCreatedEvent.getBackgammonUser());
     	logger.info("passing new user joined lobby event to producer...");
