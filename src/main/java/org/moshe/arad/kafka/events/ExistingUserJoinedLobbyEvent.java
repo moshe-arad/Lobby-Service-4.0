@@ -13,6 +13,10 @@ public class ExistingUserJoinedLobbyEvent extends BackgammonEvent {
 
 	private BackgammonUser backgammonUser;
 
+	public ExistingUserJoinedLobbyEvent() {
+
+	}
+	
 	public ExistingUserJoinedLobbyEvent(BackgammonUser backgammonUser) {
 		super();
 		this.backgammonUser = backgammonUser;

@@ -34,7 +34,6 @@ public abstract class SimpleEventsConsumer implements Runnable, ISimpleEventCons
 	private ScheduledThreadPoolExecutor scheduledExecutor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(6);
 	private String topic;
 	
-	@Autowired
 	private SimpleConsumerConfig simpleConsumerConfig;
 	
 	public SimpleEventsConsumer() {

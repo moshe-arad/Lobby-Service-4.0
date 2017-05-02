@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.Date;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.moshe.arad.entities.BackgammonUser;
+import org.moshe.arad.entities.Status;
 import org.moshe.arad.kafka.ConsumerToProducerQueue;
 import org.moshe.arad.kafka.events.ExistingUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.events.LoggedInEvent;
@@ -43,7 +45,9 @@ public class LoggedInEventConsumer extends SimpleEventsConsumer {
     		ExistingUserJoinedLobbyEvent existingUserJoinedLobbyEvent = context.getBean(ExistingUserJoinedLobbyEvent.class);
     		existingUserJoinedLobbyEvent.setUuid(loggedInEvent.getUuid());
     		existingUserJoinedLobbyEvent.setArrived(new Date());
-    		existingUserJoinedLobbyEvent.setBackgammonUser(loggedInEvent.getBackgammonUser());
+    		BackgammonUser user = loggedInEvent.getBackgammonUser();
+    		user.setStatus(Status.InLobby);
+    		existingUserJoinedLobbyEvent.setBackgammonUser(user);
     		existingUserJoinedLobbyEvent.setClazz("ExistingUserJoinedLobbyEvent");
     		
     		consumerToProducerQueue.getEventsQueue().put(existingUserJoinedLobbyEvent);
