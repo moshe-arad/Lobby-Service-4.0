@@ -13,6 +13,15 @@ public interface ISimpleEventProducer<T extends BackgammonEvent> extends ISimple
 	public void sendKafkaMessage(T event);
 	
 	@Override
+	public void setPeriod(int num);
+	
+	@Override
+	public void setInitialDelay(int num);
+	
+	@Override
+	public void setTimeUnit(TimeUnit timeUnit);
+	
+	@Override
 	public void setTopic(String topic);
 	
 	@Override

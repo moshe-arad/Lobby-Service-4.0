@@ -18,4 +18,9 @@ public class KafkaUtils {
 	public static final String LOGGED_IN_EVENT_TOPIC = "Logged-In-Event";
 	public static final String EXISTING_USER_JOINED_LOBBY_EVENT_TOPIC = "Existing-User-Joined-Lobby-Event";
 	public static final String NEW_USER_CREATED_EVENT_ACK_TOPIC = "New-User-Created-Event-Ack";
+	public static final String LOBBY_SERVICE_PULL_EVENTS_WITH_SAVING_COMMAND_TOPIC = "Lobby-Service-Pull-Events-With-Saving-Command";
+	public static final String LOBBY_SERVICE_PULL_EVENTS_WITHOUT_SAVING_COMMAND_TOPIC = "Lobby-Service-Pull-Events-Without-Saving-Command";
+	public static final String TO_LOBBY_FROM_MONGO_EVENTS_WITHOUT_SAVING_TOPIC = "To-Lobby-From-Mongo-Events-Without-Saving";
+	public static final Object TO_LOBBY_FROM_MONGO_EVENTS_WITH_SAVING_GROUP = "ToLobbyFromMongoEventsWithSavingGroup";
+	public static final Object TO_LOBBY_FROM_MONGO_EVENTS_WITHOUT_SAVING_GROUP = "ToLobbyFromMongoEventsWithoutSavingGroup";
 }
