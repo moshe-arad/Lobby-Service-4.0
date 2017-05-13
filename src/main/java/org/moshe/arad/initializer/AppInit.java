@@ -12,7 +12,7 @@ import org.moshe.arad.kafka.consumers.config.LoggedInEventConfig;
 import org.moshe.arad.kafka.consumers.config.NewUserCreatedEventConfig;
 import org.moshe.arad.kafka.consumers.config.SimpleConsumerConfig;
 import org.moshe.arad.kafka.consumers.events.LoggedInEventConsumer;
-import org.moshe.arad.kafka.consumers.events.NewUserCreatedEventConsumer;
+import org.moshe.arad.kafka.consumers.events.NewUserCreatedEventAckConsumer;
 import org.moshe.arad.kafka.events.ExistingUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.events.NewUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.producers.ISimpleProducer;
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppInit implements ApplicationContextAware, IAppInitializer {	
 	
-	private NewUserCreatedEventConsumer newUserCreatedEventConsumer;
+	private NewUserCreatedEventAckConsumer newUserCreatedEventAckConsumer;
 	
 	@Autowired
 	private NewUserCreatedEventConfig newUserCreatedEventConfig;
@@ -67,15 +67,15 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		loggedInEventQueue = context.getBean(ConsumerToProducerQueue.class);
 		
 		for(int i=0; i<NUM_CONSUMERS; i++){
-			newUserCreatedEventConsumer = context.getBean(NewUserCreatedEventConsumer.class);
+			newUserCreatedEventAckConsumer = context.getBean(NewUserCreatedEventAckConsumer.class);
 			logger.info("Initializing new user created event consumer...");
-			initSingleConsumer(newUserCreatedEventConsumer, KafkaUtils.NEW_USER_CREATED_EVENT_TOPIC, newUserCreatedEventConfig, consumerToProducerQueue);
+			initSingleConsumer(newUserCreatedEventAckConsumer, KafkaUtils.NEW_USER_CREATED_EVENT_ACK_TOPIC, newUserCreatedEventConfig, consumerToProducerQueue);
 			logger.info("Initialize new user created event, completed...");
 			
 			loggedInEventConsumer = context.getBean(LoggedInEventConsumer.class);
 			initSingleConsumer(loggedInEventConsumer, KafkaUtils.LOGGED_IN_EVENT_TOPIC, loggedInEventConfig, loggedInEventQueue);
 			
-			executeProducersAndConsumers(Arrays.asList(newUserCreatedEventConsumer, loggedInEventConsumer));
+			executeProducersAndConsumers(Arrays.asList(newUserCreatedEventAckConsumer, loggedInEventConsumer));
 		}
 	}
 
@@ -102,7 +102,7 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	@Override
 	public void engineShutdown() {
 		logger.info("about to do shutdown.");	
-		shutdownSingleConsumer(newUserCreatedEventConsumer);
+		shutdownSingleConsumer(newUserCreatedEventAckConsumer);
 		shutdownSingleProducer(newUserJoinedLobbyEventsProducer);
 		selfShutdown();
 		logger.info("shutdown compeleted.");
