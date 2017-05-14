@@ -1,6 +1,7 @@
 package org.moshe.arad.kafka.consumers.commands;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -43,8 +44,8 @@ public class OpenNewGameRoomCommandConsumer extends SimpleCommandsConsumer{
 		//TODO give game room unique name
 		gameRoom.setName("Backgammon game room");
 		gameRoom.setOpenBy(openNewGameRoomCommand.getUsername());
-		gameRoom.setSecondPlayer("none");
-		gameRoom.setWatchers(Arrays.asList("none"));
+		gameRoom.setSecondPlayer("");
+		gameRoom.setWatchers(new ArrayList<String>());
 		
 		newGameRoomOpenedEvent.setGameRoom(gameRoom);
 		newGameRoomOpenedEvent.setUuid(openNewGameRoomCommand.getUuid());
