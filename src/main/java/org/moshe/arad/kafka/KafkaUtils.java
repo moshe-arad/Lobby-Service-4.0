@@ -21,6 +21,9 @@ public class KafkaUtils {
 	public static final String LOBBY_SERVICE_PULL_EVENTS_WITH_SAVING_COMMAND_TOPIC = "Lobby-Service-Pull-Events-With-Saving-Command";
 	public static final String LOBBY_SERVICE_PULL_EVENTS_WITHOUT_SAVING_COMMAND_TOPIC = "Lobby-Service-Pull-Events-Without-Saving-Command";
 	public static final String TO_LOBBY_FROM_MONGO_EVENTS_WITHOUT_SAVING_TOPIC = "To-Lobby-From-Mongo-Events-Without-Saving";
-	public static final Object TO_LOBBY_FROM_MONGO_EVENTS_WITH_SAVING_GROUP = "ToLobbyFromMongoEventsWithSavingGroup";
-	public static final Object TO_LOBBY_FROM_MONGO_EVENTS_WITHOUT_SAVING_GROUP = "ToLobbyFromMongoEventsWithoutSavingGroup";
+	public static final String TO_LOBBY_FROM_MONGO_EVENTS_WITH_SAVING_GROUP = "ToLobbyFromMongoEventsWithSavingGroup";
+	public static final String TO_LOBBY_FROM_MONGO_EVENTS_WITHOUT_SAVING_GROUP = "ToLobbyFromMongoEventsWithoutSavingGroup";
+	public static final String OPEN_NEW_GAME_ROOM_COMMAND_GROUP = "OpenNewGameRoomCommandGroup";
+	public static final String OPEN_NEW_GAME_ROOM_COMMAND_TOPIC = "Open-New-Game-Room-Command";
+	public static final String NEW_GAME_ROOM_OPENED_EVENT_TOPIC = "New-Game-Room-Opened-Event";
 }

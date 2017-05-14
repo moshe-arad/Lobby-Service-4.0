@@ -2,9 +2,11 @@ package org.moshe.arad.entities;
 
 import java.util.List;
 
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Component
+@Scope("prototype")
 public class GameRoom {
 
 	private String name;

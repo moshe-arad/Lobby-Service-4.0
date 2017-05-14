@@ -1,10 +1,18 @@
 package org.moshe.arad.kafka.consumers.commands;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Date;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.moshe.arad.entities.GameRoom;
 import org.moshe.arad.kafka.ConsumerToProducerQueue;
 import org.moshe.arad.kafka.commands.OpenNewGameRoomCommand;
+import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -14,15 +22,43 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Scope("prototype")
 public class OpenNewGameRoomCommandConsumer extends SimpleCommandsConsumer{
 
+	@Autowired
+	private ApplicationContext context;
+	
+	private ConsumerToProducerQueue consumerToProducerQueue;
+	
+	private Logger logger = LoggerFactory.getLogger(OpenNewGameRoomCommandConsumer.class);
+	
 	@Override
 	public void consumerOperations(ConsumerRecord<String, String> record) {
 		OpenNewGameRoomCommand openNewGameRoomCommand = convertJsonBlobIntoEvent(record.value()); 
+		
+		//TODO need to load game rooms here and validate
+		
+		logger.info("Validation passed...");
+		logger.info("Will send new game Room opened event...");
+		
+		NewGameRoomOpenedEvent newGameRoomOpenedEvent = context.getBean(NewGameRoomOpenedEvent.class);
+		GameRoom gameRoom = context.getBean(GameRoom.class);
+		//TODO give game room unique name
+		gameRoom.setName("Backgammon game room");
+		gameRoom.setOpenBy(openNewGameRoomCommand.getUsername());
+		gameRoom.setSecondPlayer("none");
+		gameRoom.setWatchers(Arrays.asList("none"));
+		
+		newGameRoomOpenedEvent.setGameRoom(gameRoom);
+		newGameRoomOpenedEvent.setUuid(openNewGameRoomCommand.getUuid());
+		newGameRoomOpenedEvent.setArrived(new Date());
+		newGameRoomOpenedEvent.setClazz("NewGameRoomOpenedEvent");
+		
+		logger.info("Sending new game room opened event to kafka broker...");
+		consumerToProducerQueue.getEventsQueue().put(newGameRoomOpenedEvent);
+		logger.info("event passed...");
 	}
 	
 	@Override
 	public void setConsumerToProducerQueue(ConsumerToProducerQueue consumerToProducerQueue) {
-		// TODO Auto-generated method stub
-		
+		this.consumerToProducerQueue = consumerToProducerQueue;
 	}
 	
 	private OpenNewGameRoomCommand convertJsonBlobIntoEvent(String JsonBlob){

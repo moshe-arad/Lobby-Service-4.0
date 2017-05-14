@@ -10,15 +10,18 @@ import org.moshe.arad.kafka.ConsumerToProducerQueue;
 import org.moshe.arad.kafka.KafkaUtils;
 import org.moshe.arad.kafka.commands.PullEventsWithSavingCommand;
 import org.moshe.arad.kafka.consumers.ISimpleConsumer;
+import org.moshe.arad.kafka.consumers.commands.OpenNewGameRoomCommandConsumer;
 import org.moshe.arad.kafka.consumers.config.FromMongoWithoutSavingEventsConfig;
 import org.moshe.arad.kafka.consumers.config.LoggedInEventConfig;
 import org.moshe.arad.kafka.consumers.config.NewUserCreatedEventConfig;
+import org.moshe.arad.kafka.consumers.config.OpenNewGameRoomCommandConfig;
 import org.moshe.arad.kafka.consumers.config.SimpleConsumerConfig;
 import org.moshe.arad.kafka.consumers.events.FromMongoWithSavingEventsConsumer;
 import org.moshe.arad.kafka.consumers.events.FromMongoWithoutSavingEventsConsumer;
 import org.moshe.arad.kafka.consumers.events.LoggedInEventConsumer;
 import org.moshe.arad.kafka.consumers.events.NewUserCreatedEventAckConsumer;
 import org.moshe.arad.kafka.events.ExistingUserJoinedLobbyEvent;
+import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.events.NewUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.producers.ISimpleProducer;
 import org.moshe.arad.kafka.producers.commands.ISimpleCommandProducer;
@@ -61,6 +64,14 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	@Autowired
 	private FromMongoWithoutSavingEventsConfig fromMongoWithoutSavingEventsConfig;
 	
+	private OpenNewGameRoomCommandConsumer openNewGameRoomCommandConsumer;
+	
+	@Autowired
+	private OpenNewGameRoomCommandConfig openNewGameRoomCommandConfig;
+	
+	@Autowired
+	private SimpleEventsProducer<NewGameRoomOpenedEvent> newGameRoomOpenedEventProducer;
+	
 	private ExecutorService executor = Executors.newFixedThreadPool(6);
 	
 	private Logger logger = LoggerFactory.getLogger(AppInit.class);
@@ -71,11 +82,19 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	
 	private ConsumerToProducerQueue loggedInEventQueue;
 	
+	private ConsumerToProducerQueue newGameRoomOpenQueue;
+	
 	public static final int NUM_CONSUMERS = 3;
 	
 	@Override
 	public void initKafkaCommandsConsumers() {
-	
+		newGameRoomOpenQueue = context.getBean(ConsumerToProducerQueue.class);
+		
+		for(int i=0; i<NUM_CONSUMERS; i++){
+			openNewGameRoomCommandConsumer = context.getBean(OpenNewGameRoomCommandConsumer.class);					
+			initSingleConsumer(openNewGameRoomCommandConsumer, KafkaUtils.OPEN_NEW_GAME_ROOM_COMMAND_TOPIC, openNewGameRoomCommandConfig, newGameRoomOpenQueue);						
+			executeProducersAndConsumers(Arrays.asList(openNewGameRoomCommandConsumer));
+		}
 	}
 
 	@Override
@@ -112,7 +131,12 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		logger.info("Initialize new user created event, completed...");
 		
 		initSingleProducer(existingUserJoinedLobbyEventsProducer, KafkaUtils.EXISTING_USER_JOINED_LOBBY_EVENT_TOPIC, loggedInEventQueue);
-		executeProducersAndConsumers(Arrays.asList(newUserJoinedLobbyEventsProducer, existingUserJoinedLobbyEventsProducer));		
+				
+		initSingleProducer(newGameRoomOpenedEventProducer, KafkaUtils.NEW_GAME_ROOM_OPENED_EVENT_TOPIC, newGameRoomOpenQueue);
+		
+		executeProducersAndConsumers(Arrays.asList(newUserJoinedLobbyEventsProducer, 
+				existingUserJoinedLobbyEventsProducer,
+				newGameRoomOpenedEventProducer));		
 	}
 
 	@Override
