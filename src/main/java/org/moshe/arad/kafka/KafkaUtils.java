@@ -26,4 +26,5 @@ public class KafkaUtils {
 	public static final String OPEN_NEW_GAME_ROOM_COMMAND_GROUP = "OpenNewGameRoomCommandGroup";
 	public static final String OPEN_NEW_GAME_ROOM_COMMAND_TOPIC = "Open-New-Game-Room-Command";
 	public static final String NEW_GAME_ROOM_OPENED_EVENT_TOPIC = "New-Game-Room-Opened-Event";
+	public static final String NEW_GAME_ROOM_OPENED_EVENT_ACK_TOPIC = "New-Game-Room-Opened-Event-Ack";
 }

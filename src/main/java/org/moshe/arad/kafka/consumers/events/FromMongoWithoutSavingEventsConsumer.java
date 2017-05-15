@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.moshe.arad.kafka.ConsumerToProducerQueue;
+import org.moshe.arad.kafka.EventsBasketFromMongo;
 import org.moshe.arad.kafka.events.BackgammonEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.events.NewUserCreatedEvent;
@@ -33,8 +34,13 @@ public class FromMongoWithoutSavingEventsConsumer extends SimpleEventsConsumer {
 	
 	Logger logger = LoggerFactory.getLogger(FromMongoWithoutSavingEventsConsumer.class);
 	
-	private Map<UUID,Set<BackgammonEvent>> eventsMap = new HashMap<>(100000);
-	private Map<UUID,Integer> totalNumOfEvents = new HashMap<>(100000);
+	@Autowired
+	private EventsBasketFromMongo eventsBasketFromMongo;
+	
+//	private Map<UUID,Set<BackgammonEvent>> eventsMap = new HashMap<>(100000);
+//	private Map<UUID,Integer> totalNumOfEvents = new HashMap<>(100000);
+	
+	int substrcatEventsNum = 0;
 	
 	public FromMongoWithoutSavingEventsConsumer() {
 
@@ -48,40 +54,30 @@ public class FromMongoWithoutSavingEventsConsumer extends SimpleEventsConsumer {
 			JsonNode jsonNode = objectMapper.readValue(record.value(), JsonNode.class);
 			String clazz = jsonNode.get("clazz").asText();
 			String uuid = jsonNode.get("uuid").asText();
-			BackgammonEvent backgammonEvent = null;
-			int substrcatEventsNum = 0;
+			BackgammonEvent backgammonEvent = null;			
 			
 			if(clazz.equals("StartReadEventsFromMongoEvent"))
 			{
 				logger.info("Recieved the begin read events record, starting reading events from events store...");
-				int tempTotalNumOfEvents = jsonNode.get("totalNumOfEvents").asInt();
-				totalNumOfEvents.put(UUID.fromString(uuid), Integer.valueOf(tempTotalNumOfEvents));
-				
-				if(tempTotalNumOfEvents == 0) eventsMap.put(UUID.fromString(uuid), new HashSet<>());
+				int tempTotalNumOfEvents = jsonNode.get("totalNumOfEvents").asInt();				
+				eventsBasketFromMongo.putTotalNumOfEventsFor(uuid, tempTotalNumOfEvents);											
 			}
 			else if(clazz.equals("NewGameRoomOpenedEvent")){
 				NewGameRoomOpenedEvent newGameRoomOpenedEvent = objectMapper.readValue(record.value(), NewGameRoomOpenedEvent.class);
 				backgammonEvent = newGameRoomOpenedEvent;
 
-				addEventToCollectedEvents(uuid, backgammonEvent);
+				eventsBasketFromMongo.addEventToCollectedEvents(uuid, backgammonEvent);
 			}
 			else{
-				if(totalNumOfEvents.get(UUID.fromString(uuid)) == null) substrcatEventsNum++;
-				else{
-					int numevents = totalNumOfEvents.get(UUID.fromString(uuid));
-					if(substrcatEventsNum != -1){
-						numevents-=substrcatEventsNum;
-						substrcatEventsNum = -1;
-					}
-					numevents--;
-					totalNumOfEvents.remove(UUID.fromString(uuid));
-					totalNumOfEvents.put(UUID.fromString(uuid), numevents);
+				if(!eventsBasketFromMongo.isGotTotalNumOfEvents(uuid)) substrcatEventsNum+=1;
+				else if(substrcatEventsNum != -1){
+					eventsBasketFromMongo.substractNumOfEvents(substrcatEventsNum, uuid);
+					substrcatEventsNum = -1;
 				}
-				
-				
+				else eventsBasketFromMongo.substractNumOfEvents(1, uuid);				
 			}
 			
-			if(totalNumOfEvents.get(UUID.fromString(uuid)) != null && eventsMap.get(UUID.fromString(uuid)) != null && eventsMap.get(UUID.fromString(uuid)).size() == totalNumOfEvents.get(UUID.fromString(uuid))){
+			if(eventsBasketFromMongo.isReadyHandleEventsFromMongo(uuid)){
 				logger.info("Updating SnapshotAPI with collected events data from mongo events store...");
 				
 				//put events in snapshotAPI
@@ -93,8 +89,7 @@ public class FromMongoWithoutSavingEventsConsumer extends SimpleEventsConsumer {
 				}
 				
 				substrcatEventsNum = 0;
-				totalNumOfEvents.remove(UUID.fromString(uuid));
-				eventsMap.remove(UUID.fromString(uuid));
+				eventsBasketFromMongo.cleanByUuid(uuid);
 			}
 		}
 		catch(Exception ex){
@@ -105,18 +100,9 @@ public class FromMongoWithoutSavingEventsConsumer extends SimpleEventsConsumer {
 	}
 	
 	public LinkedList<BackgammonEvent> getSortedListByArrivedDate(String uuid){
-		ArrayList<BackgammonEvent> fromMongoEventsStoreEventList = new ArrayList<>(eventsMap.get(UUID.fromString(uuid)));
+		ArrayList<BackgammonEvent> fromMongoEventsStoreEventList = new ArrayList<>(eventsBasketFromMongo.getEvents(uuid));
 		fromMongoEventsStoreEventList = (ArrayList<BackgammonEvent>) fromMongoEventsStoreEventList.stream().sorted((BackgammonEvent e1, BackgammonEvent e2) -> {return e1.getArrived().compareTo(e2.getArrived());}).collect(Collectors.toList());
 		return new LinkedList<>(fromMongoEventsStoreEventList);
-	}
-	
-	private void addEventToCollectedEvents(String uuid, BackgammonEvent backgammonEvent) {
-		if(!eventsMap.containsKey(UUID.fromString(uuid))){
-			Set<BackgammonEvent> eventsSet = new HashSet<>(100000);
-			eventsSet.add(backgammonEvent);
-			eventsMap.put(UUID.fromString(uuid), eventsSet);
-		}
-		else eventsMap.get(UUID.fromString(uuid)).add(backgammonEvent);
 	}
 
 	@Override

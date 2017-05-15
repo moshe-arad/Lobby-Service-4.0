@@ -1,5 +1,6 @@
 package org.moshe.arad.kafka;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -42,6 +43,7 @@ public class EventsBasketFromMongo {
 	
 	public void putTotalNumOfEventsFor(String uuid, int tempTotalNumOfEvents){
 		totalNumOfEvents.put(UUID.fromString(uuid), Integer.valueOf(tempTotalNumOfEvents));
+		if(tempTotalNumOfEvents == 0) eventsMap.put(UUID.fromString(uuid), new HashSet<>());
 	}
 	
 	public boolean isReadyHandleEventsFromMongo(String uuid){
@@ -55,5 +57,17 @@ public class EventsBasketFromMongo {
 	
 	public Set<BackgammonEvent> getEvents(String uuid){
 		return eventsMap.get(UUID.fromString(uuid));
+	}
+	
+	public boolean isGotTotalNumOfEvents(String uuid){
+		if(totalNumOfEvents.get(UUID.fromString(uuid)) == null) return false;
+		else return true;
+	}
+	
+	public void substractNumOfEvents(int numEventsSub, String uuid){
+		int numevents = totalNumOfEvents.get(UUID.fromString(uuid));
+		numevents -= numEventsSub;
+		totalNumOfEvents.remove(UUID.fromString(uuid));
+		totalNumOfEvents.put(UUID.fromString(uuid), numevents);
 	}
 }

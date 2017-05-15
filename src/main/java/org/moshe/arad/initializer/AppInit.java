@@ -22,6 +22,7 @@ import org.moshe.arad.kafka.consumers.events.LoggedInEventConsumer;
 import org.moshe.arad.kafka.consumers.events.NewUserCreatedEventAckConsumer;
 import org.moshe.arad.kafka.events.ExistingUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
+import org.moshe.arad.kafka.events.NewGameRoomOpenedEventAck;
 import org.moshe.arad.kafka.events.NewUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.producers.ISimpleProducer;
 import org.moshe.arad.kafka.producers.commands.ISimpleCommandProducer;
@@ -72,6 +73,9 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	@Autowired
 	private SimpleEventsProducer<NewGameRoomOpenedEvent> newGameRoomOpenedEventProducer;
 	
+	@Autowired
+	private SimpleEventsProducer<NewGameRoomOpenedEventAck> newGameRoomOpenedEventAckProducer;
+	
 	private ExecutorService executor = Executors.newFixedThreadPool(6);
 	
 	private Logger logger = LoggerFactory.getLogger(AppInit.class);
@@ -84,14 +88,19 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	
 	private ConsumerToProducerQueue newGameRoomOpenQueue;
 	
+	private ConsumerToProducerQueue newGameRoomOpenAckQueue;
+	
 	public static final int NUM_CONSUMERS = 3;
 	
 	@Override
 	public void initKafkaCommandsConsumers() {
 		newGameRoomOpenQueue = context.getBean(ConsumerToProducerQueue.class);
-		
+		newGameRoomOpenAckQueue = context.getBean(ConsumerToProducerQueue.class); 
+				
 		for(int i=0; i<NUM_CONSUMERS; i++){
-			openNewGameRoomCommandConsumer = context.getBean(OpenNewGameRoomCommandConsumer.class);					
+			openNewGameRoomCommandConsumer = context.getBean(OpenNewGameRoomCommandConsumer.class);
+			openNewGameRoomCommandConsumer.setConsumerToProducerAckQueue(newGameRoomOpenAckQueue);
+			
 			initSingleConsumer(openNewGameRoomCommandConsumer, KafkaUtils.OPEN_NEW_GAME_ROOM_COMMAND_TOPIC, openNewGameRoomCommandConfig, newGameRoomOpenQueue);						
 			executeProducersAndConsumers(Arrays.asList(openNewGameRoomCommandConsumer));
 		}
@@ -137,9 +146,12 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 				
 		initSingleProducer(newGameRoomOpenedEventProducer, KafkaUtils.NEW_GAME_ROOM_OPENED_EVENT_TOPIC, newGameRoomOpenQueue);
 		
+		initSingleProducer(newGameRoomOpenedEventAckProducer, KafkaUtils.NEW_GAME_ROOM_OPENED_EVENT_ACK_TOPIC, newGameRoomOpenAckQueue);
+		
 		executeProducersAndConsumers(Arrays.asList(newUserJoinedLobbyEventsProducer, 
 				existingUserJoinedLobbyEventsProducer,
-				newGameRoomOpenedEventProducer));		
+				newGameRoomOpenedEventProducer,
+				newGameRoomOpenedEventAckProducer));		
 	}
 
 	@Override

@@ -9,6 +9,7 @@ import org.moshe.arad.entities.GameRoom;
 import org.moshe.arad.kafka.ConsumerToProducerQueue;
 import org.moshe.arad.kafka.commands.OpenNewGameRoomCommand;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
+import org.moshe.arad.kafka.events.NewGameRoomOpenedEventAck;
 import org.moshe.arad.repository.LobbyRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,8 @@ public class OpenNewGameRoomCommandConsumer extends SimpleCommandsConsumer{
 	private ApplicationContext context;
 	
 	private ConsumerToProducerQueue consumerToProducerQueue;
+	
+	private ConsumerToProducerQueue consumerToProducerAckQueue;
 	
 	private Logger logger = LoggerFactory.getLogger(OpenNewGameRoomCommandConsumer.class);
 	
@@ -60,13 +63,13 @@ public class OpenNewGameRoomCommandConsumer extends SimpleCommandsConsumer{
 		}
 		else{
 			//TODO send ack failure
-			logger.error("*******************************************");
-			logger.error("*******************************************");
-			logger.error("*******************************************");
-			logger.error("*******************************************");
-			logger.error("*******************************************");
-			logger.error("*******************************************");
-			logger.error("*******************************************");
+			NewGameRoomOpenedEventAck newGameRoomOpenedEventAck = context.getBean(NewGameRoomOpenedEventAck.class);
+			newGameRoomOpenedEventAck.setUuid(openNewGameRoomCommand.getUuid());
+			newGameRoomOpenedEventAck.setGameRoomOpened(false);
+			
+			logger.info("Will reply with failure ack event...");
+			consumerToProducerAckQueue.getEventsQueue().put(newGameRoomOpenedEventAck);
+			logger.info("Ack event passed...");
 		}
 		
 		
@@ -76,7 +79,11 @@ public class OpenNewGameRoomCommandConsumer extends SimpleCommandsConsumer{
 	public void setConsumerToProducerQueue(ConsumerToProducerQueue consumerToProducerQueue) {
 		this.consumerToProducerQueue = consumerToProducerQueue;
 	}
-	
+
+	public void setConsumerToProducerAckQueue(ConsumerToProducerQueue consumerToProducerAckQueue) {
+		this.consumerToProducerAckQueue = consumerToProducerAckQueue;
+	}
+
 	private OpenNewGameRoomCommand convertJsonBlobIntoEvent(String JsonBlob){
 		ObjectMapper objectMapper = new ObjectMapper();
 		try {
