@@ -14,8 +14,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.moshe.arad.entities.GameRoom;
 import org.moshe.arad.kafka.KafkaUtils;
 import org.moshe.arad.kafka.events.BackgammonEvent;
+import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.producers.commands.ISimpleCommandProducer;
 import org.moshe.arad.kafka.producers.commands.PullEventsWithoutSavingCommandsProducer;
 import org.slf4j.Logger;
@@ -27,6 +29,9 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Repository
 public class SnapshotAPI implements ApplicationContextAware {
@@ -112,7 +117,7 @@ public class SnapshotAPI implements ApplicationContextAware {
 		synchronized (current) {
 			try {				
 				lockers.put(uuid, current);
-				current.wait(5000);
+				current.wait();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -174,19 +179,21 @@ public class SnapshotAPI implements ApplicationContextAware {
 		while(it.hasNext()){			
 			BackgammonEvent eventToFold = it.next();
 			logger.info("Event to fold = " + eventToFold);
-			if(eventToFold.getClazz().equals("NewUserCreatedEvent") 
-					|| eventToFold.getClazz().equals("NewUserJoinedLobbyEvent") 
-					|| eventToFold.getClazz().equals("LoggedInEvent")
-					|| eventToFold.getClazz().equals("ExistingUserJoinedLobbyEvent")
-					|| eventToFold.getClazz().equals("LoggedOutEvent")){
-				continue;
-			}
-			else if(eventToFold.getClazz().equals("")){
-				//TODO complete code
+			if(eventToFold.getClazz().equals("NewGameRoomOpenedEvent")){
+				NewGameRoomOpenedEvent newGameRoomOpenedEvent = (NewGameRoomOpenedEvent)eventToFold;
+				GameRoom gameRoom = newGameRoomOpenedEvent.getGameRoom();
+				
+				ObjectMapper objectMapper = new ObjectMapper();
+				String gameRoomJson = null;
+				try {
+					gameRoomJson = objectMapper.writeValueAsString(gameRoom);
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+				}
+				currentSnapshot.get(GAME_ROOMS).put(gameRoom.getName(), gameRoomJson);
 			}
 			
 			logger.info("Event to folded successfuly = " + eventToFold);
-			//TODO write code about logging out and in game code
 		}
 		
 		logger.info("Events folding into current state completed...");

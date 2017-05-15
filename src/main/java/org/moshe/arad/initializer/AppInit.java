@@ -114,7 +114,9 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 			fromMongoWithoutSavingEventsConsumer = context.getBean(FromMongoWithoutSavingEventsConsumer.class);
 			initSingleConsumer(fromMongoWithoutSavingEventsConsumer, KafkaUtils.TO_LOBBY_FROM_MONGO_EVENTS_WITHOUT_SAVING_TOPIC, fromMongoWithoutSavingEventsConfig);
 			
-			executeProducersAndConsumers(Arrays.asList(newUserCreatedEventAckConsumer, loggedInEventConsumer));
+			executeProducersAndConsumers(Arrays.asList(newUserCreatedEventAckConsumer, 
+					loggedInEventConsumer,
+					fromMongoWithoutSavingEventsConsumer));
 		}
 	}
 
