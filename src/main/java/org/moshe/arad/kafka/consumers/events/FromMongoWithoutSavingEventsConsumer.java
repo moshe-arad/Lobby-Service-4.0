@@ -37,9 +37,6 @@ public class FromMongoWithoutSavingEventsConsumer extends SimpleEventsConsumer {
 	@Autowired
 	private EventsBasketFromMongo eventsBasketFromMongo;
 	
-//	private Map<UUID,Set<BackgammonEvent>> eventsMap = new HashMap<>(100000);
-//	private Map<UUID,Integer> totalNumOfEvents = new HashMap<>(100000);
-	
 	int substrcatEventsNum = 0;
 	
 	public FromMongoWithoutSavingEventsConsumer() {
