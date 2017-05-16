@@ -17,7 +17,7 @@ public class SimpleProducerConfig {
 		properties.put("acks", "0");
 		properties.put("compression.type", "snappy");
 		properties.put("batch.size", "163840");
-		properties.put("linger.ms", "50");
+		properties.put("linger.ms", "5");
 		properties.put("max.request.size", "163840");
 	}
 

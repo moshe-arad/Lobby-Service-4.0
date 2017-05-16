@@ -42,7 +42,7 @@ public class NewUserCreatedEventAckConsumer extends SimpleEventsConsumer {
     	logger.info("creating new user joined lobby event...");
     	newUserCreatedEventAck.getBackgammonUser().setStatus(Status.InLobby);
     	NewUserJoinedLobbyEvent newUserJoinedLobbyEvent = new NewUserJoinedLobbyEvent(newUserCreatedEventAck.getUuid(), 
-    			2, 2, new Date(),"newUserJoinedLobbyEvent", newUserCreatedEventAck.getBackgammonUser());
+    			2, 2, new Date(),"NewUserJoinedLobbyEvent", newUserCreatedEventAck.getBackgammonUser());
     	logger.info("passing new user joined lobby event to producer...");
     	consumerToProducerQueue.getEventsQueue().put(newUserJoinedLobbyEvent);
 	}

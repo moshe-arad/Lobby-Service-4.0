@@ -4,9 +4,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.moshe.arad.kafka.ConsumerToProducerQueue;
 import org.moshe.arad.kafka.events.BackgammonEvent;
 import org.moshe.arad.kafka.producers.ISimpleProducer;
@@ -71,7 +73,15 @@ public class SimpleEventsProducer <T extends BackgammonEvent> implements ISimple
 		String eventJsonBlob = convertEventIntoJsonBlob(event);
 		logger.info("Sending message to topic = " + topic + ", JSON message = " + eventJsonBlob + ".");
 		ProducerRecord<String, String> record = new ProducerRecord<String, String>(topic, eventJsonBlob);
-		producer.send(record);
+		producer.send(record, new Callback() {
+			
+			@Override
+			public void onCompletion(RecordMetadata arg0, Exception ex) {
+				if (ex != null) {
+		        	ex.printStackTrace(); 
+		        }				
+			}
+		});
 		logger.info("Message sent.");
 		producer.close();
 		logger.info("Kafka producer closed.");
