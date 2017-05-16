@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 @Scope("prototype")
-public class LoggedInEventConsumer extends SimpleEventsConsumer {
+public class LoggedInEventAckConsumer extends SimpleEventsConsumer {
 
 	@Autowired
 	private Lobby lobby;
@@ -29,11 +29,11 @@ public class LoggedInEventConsumer extends SimpleEventsConsumer {
 	@Autowired
 	private ApplicationContext context;
 	
-	Logger logger = LoggerFactory.getLogger(LoggedInEventConsumer.class);
+	Logger logger = LoggerFactory.getLogger(LoggedInEventAckConsumer.class);
 	
 	private ConsumerToProducerQueue consumerToProducerQueue;
 	
-	public LoggedInEventConsumer() {
+	public LoggedInEventAckConsumer() {
 	}
 
 	@Override

@@ -4,9 +4,9 @@ import org.moshe.arad.kafka.KafkaUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LoggedInEventConfig extends SimpleConsumerConfig{
+public class LoggedInEventAckConfig extends SimpleConsumerConfig{
 
-	public LoggedInEventConfig() {
+	public LoggedInEventAckConfig() {
 		super();
 		super.getProperties().put("group.id", KafkaUtils.LOGGED_IN_EVENT_GROUP);
 	}

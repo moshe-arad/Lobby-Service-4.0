@@ -12,13 +12,13 @@ import org.moshe.arad.kafka.commands.PullEventsWithSavingCommand;
 import org.moshe.arad.kafka.consumers.ISimpleConsumer;
 import org.moshe.arad.kafka.consumers.commands.OpenNewGameRoomCommandConsumer;
 import org.moshe.arad.kafka.consumers.config.FromMongoWithoutSavingEventsConfig;
-import org.moshe.arad.kafka.consumers.config.LoggedInEventConfig;
+import org.moshe.arad.kafka.consumers.config.LoggedInEventAckConfig;
 import org.moshe.arad.kafka.consumers.config.NewUserCreatedEventConfig;
 import org.moshe.arad.kafka.consumers.config.OpenNewGameRoomCommandConfig;
 import org.moshe.arad.kafka.consumers.config.SimpleConsumerConfig;
 import org.moshe.arad.kafka.consumers.events.FromMongoWithSavingEventsConsumer;
 import org.moshe.arad.kafka.consumers.events.FromMongoWithoutSavingEventsConsumer;
-import org.moshe.arad.kafka.consumers.events.LoggedInEventConsumer;
+import org.moshe.arad.kafka.consumers.events.LoggedInEventAckConsumer;
 import org.moshe.arad.kafka.consumers.events.NewUserCreatedEventAckConsumer;
 import org.moshe.arad.kafka.events.ExistingUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
@@ -47,10 +47,10 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	@Autowired
 	private SimpleEventsProducer<NewUserJoinedLobbyEvent> newUserJoinedLobbyEventsProducer;
 	
-	private LoggedInEventConsumer loggedInEventConsumer;
+	private LoggedInEventAckConsumer loggedInEventAckConsumer;
 	
 	@Autowired
-	private LoggedInEventConfig loggedInEventConfig;
+	private LoggedInEventAckConfig loggedInEventAckConfig;
 	
 	@Autowired
 	private SimpleEventsProducer<ExistingUserJoinedLobbyEvent> existingUserJoinedLobbyEventsProducer;
@@ -84,7 +84,7 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	
 	private ConsumerToProducerQueue consumerToProducerQueue;
 	
-	private ConsumerToProducerQueue loggedInEventQueue;
+	private ConsumerToProducerQueue loggedInEventAckQueue;
 	
 	private ConsumerToProducerQueue newGameRoomOpenQueue;
 	
@@ -109,7 +109,7 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	@Override
 	public void initKafkaEventsConsumers() {	
 		consumerToProducerQueue = context.getBean(ConsumerToProducerQueue.class);
-		loggedInEventQueue = context.getBean(ConsumerToProducerQueue.class);
+		loggedInEventAckQueue = context.getBean(ConsumerToProducerQueue.class);
 		
 		for(int i=0; i<NUM_CONSUMERS; i++){
 			newUserCreatedEventAckConsumer = context.getBean(NewUserCreatedEventAckConsumer.class);
@@ -117,14 +117,14 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 			initSingleConsumer(newUserCreatedEventAckConsumer, KafkaUtils.NEW_USER_CREATED_EVENT_ACK_TOPIC, newUserCreatedEventConfig, consumerToProducerQueue);
 			logger.info("Initialize new user created event, completed...");
 			
-			loggedInEventConsumer = context.getBean(LoggedInEventConsumer.class);
-			initSingleConsumer(loggedInEventConsumer, KafkaUtils.LOGGED_IN_EVENT_TOPIC, loggedInEventConfig, loggedInEventQueue);
+			loggedInEventAckConsumer = context.getBean(LoggedInEventAckConsumer.class);
+			initSingleConsumer(loggedInEventAckConsumer, KafkaUtils.LOGGED_IN_EVENT_ACK_TOPIC, loggedInEventAckConfig, loggedInEventAckQueue);
 			
 			fromMongoWithoutSavingEventsConsumer = context.getBean(FromMongoWithoutSavingEventsConsumer.class);
 			initSingleConsumer(fromMongoWithoutSavingEventsConsumer, KafkaUtils.TO_LOBBY_FROM_MONGO_EVENTS_WITHOUT_SAVING_TOPIC, fromMongoWithoutSavingEventsConfig);
 			
 			executeProducersAndConsumers(Arrays.asList(newUserCreatedEventAckConsumer, 
-					loggedInEventConsumer,
+					loggedInEventAckConsumer,
 					fromMongoWithoutSavingEventsConsumer));
 		}
 	}
@@ -142,7 +142,7 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		initSingleProducer(newUserJoinedLobbyEventsProducer, KafkaUtils.NEW_USER_JOINED_LOBBY_EVENT_TOPIC, consumerToProducerQueue);
 		logger.info("Initialize new user created event, completed...");
 		
-		initSingleProducer(existingUserJoinedLobbyEventsProducer, KafkaUtils.EXISTING_USER_JOINED_LOBBY_EVENT_TOPIC, loggedInEventQueue);
+		initSingleProducer(existingUserJoinedLobbyEventsProducer, KafkaUtils.EXISTING_USER_JOINED_LOBBY_EVENT_TOPIC, loggedInEventAckQueue);
 				
 		initSingleProducer(newGameRoomOpenedEventProducer, KafkaUtils.NEW_GAME_ROOM_OPENED_EVENT_TOPIC, newGameRoomOpenQueue);
 		
