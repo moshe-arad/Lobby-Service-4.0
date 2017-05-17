@@ -39,8 +39,9 @@ public class OpenNewGameRoomCommandConsumer extends SimpleCommandsConsumer{
 	@Override
 	public void consumerOperations(ConsumerRecord<String, String> record) {
 		OpenNewGameRoomCommand openNewGameRoomCommand = convertJsonBlobIntoEvent(record.value()); 
+		NewGameRoomOpenedEventAck newGameRoomOpenedEventAck;
 		
-		if(!lobbyRepository.isUserEngagedInOtherRoom(openNewGameRoomCommand.getUsername())){
+		if(!lobbyRepository.isUserEngagedInOtherRoom(openNewGameRoomCommand.getUsername())){												
 			logger.info("Validation passed...");
 			logger.info("Will send new game Room opened event...");
 			
@@ -52,18 +53,27 @@ public class OpenNewGameRoomCommandConsumer extends SimpleCommandsConsumer{
 			gameRoom.setSecondPlayer("");
 			gameRoom.setWatchers(new ArrayList<String>());
 			
+			newGameRoomOpenedEventAck = context.getBean(NewGameRoomOpenedEventAck.class);
+			newGameRoomOpenedEventAck.setUuid(openNewGameRoomCommand.getUuid());
+			newGameRoomOpenedEventAck.setArrived(new Date());
+			newGameRoomOpenedEventAck.setGameRoom(gameRoom);			
+			newGameRoomOpenedEventAck.setGameRoomOpened(true);
+			
 			newGameRoomOpenedEvent.setGameRoom(gameRoom);
 			newGameRoomOpenedEvent.setUuid(openNewGameRoomCommand.getUuid());
 			newGameRoomOpenedEvent.setArrived(new Date());
 			newGameRoomOpenedEvent.setClazz("NewGameRoomOpenedEvent");
+			
+			logger.info("Will reply with failure ack event...");
+			consumerToProducerAckQueue.getEventsQueue().put(newGameRoomOpenedEventAck);
+			logger.info("Ack event passed...");
 			
 			logger.info("Sending new game room opened event to kafka broker...");
 			consumerToProducerQueue.getEventsQueue().put(newGameRoomOpenedEvent);
 			logger.info("event passed...");
 		}
 		else{
-			//TODO send ack failure
-			NewGameRoomOpenedEventAck newGameRoomOpenedEventAck = context.getBean(NewGameRoomOpenedEventAck.class);
+			newGameRoomOpenedEventAck = context.getBean(NewGameRoomOpenedEventAck.class);
 			newGameRoomOpenedEventAck.setUuid(openNewGameRoomCommand.getUuid());
 			newGameRoomOpenedEventAck.setGameRoomOpened(false);
 			
