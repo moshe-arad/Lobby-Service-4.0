@@ -90,7 +90,7 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	
 	private ConsumerToProducerQueue newGameRoomOpenAckQueue;
 	
-	public static final int NUM_CONSUMERS = 5;
+	public static final int NUM_CONSUMERS = 3;
 	
 	@Override
 	public void initKafkaCommandsConsumers() {
