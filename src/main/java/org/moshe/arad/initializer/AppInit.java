@@ -10,7 +10,9 @@ import org.moshe.arad.kafka.ConsumerToProducerQueue;
 import org.moshe.arad.kafka.KafkaUtils;
 import org.moshe.arad.kafka.commands.PullEventsWithSavingCommand;
 import org.moshe.arad.kafka.consumers.ISimpleConsumer;
+import org.moshe.arad.kafka.consumers.commands.CloseGameRoomCommandConsumer;
 import org.moshe.arad.kafka.consumers.commands.OpenNewGameRoomCommandConsumer;
+import org.moshe.arad.kafka.consumers.config.CloseGameRoomCommandConfig;
 import org.moshe.arad.kafka.consumers.config.FromMongoWithoutSavingEventsConfig;
 import org.moshe.arad.kafka.consumers.config.LoggedInEventAckConfig;
 import org.moshe.arad.kafka.consumers.config.NewUserCreatedEventConfig;
@@ -20,7 +22,9 @@ import org.moshe.arad.kafka.consumers.events.FromMongoWithSavingEventsConsumer;
 import org.moshe.arad.kafka.consumers.events.FromMongoWithoutSavingEventsConsumer;
 import org.moshe.arad.kafka.consumers.events.LoggedInEventAckConsumer;
 import org.moshe.arad.kafka.consumers.events.NewUserCreatedEventAckConsumer;
+import org.moshe.arad.kafka.events.CloseGameRoomEventAck;
 import org.moshe.arad.kafka.events.ExistingUserJoinedLobbyEvent;
+import org.moshe.arad.kafka.events.GameRoomClosedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEventAck;
 import org.moshe.arad.kafka.events.NewUserJoinedLobbyEvent;
@@ -76,6 +80,17 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	@Autowired
 	private SimpleEventsProducer<NewGameRoomOpenedEventAck> newGameRoomOpenedEventAckProducer;
 	
+	private CloseGameRoomCommandConsumer closeGameRoomCommandConsumer;
+	
+	@Autowired
+	private CloseGameRoomCommandConfig closeGameRoomCommandConfig;
+	
+	@Autowired
+	private SimpleEventsProducer<GameRoomClosedEvent> gameRoomClosedEventProducer;
+	
+	@Autowired
+	private SimpleEventsProducer<CloseGameRoomEventAck> closeGameRoomEventAckProducer;
+	
 	private ExecutorService executor = Executors.newFixedThreadPool(6);
 	
 	private Logger logger = LoggerFactory.getLogger(AppInit.class);
@@ -90,19 +105,29 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	
 	private ConsumerToProducerQueue newGameRoomOpenAckQueue;
 	
+	private ConsumerToProducerQueue closeGameRoomQueue;
+	
+	private ConsumerToProducerQueue closeGameRoomAckQueue;
+	
 	public static final int NUM_CONSUMERS = 3;
 	
 	@Override
 	public void initKafkaCommandsConsumers() {
 		newGameRoomOpenQueue = context.getBean(ConsumerToProducerQueue.class);
 		newGameRoomOpenAckQueue = context.getBean(ConsumerToProducerQueue.class); 
-				
+		closeGameRoomQueue = context.getBean(ConsumerToProducerQueue.class);
+		closeGameRoomAckQueue = context.getBean(ConsumerToProducerQueue.class);;
+		
 		for(int i=0; i<NUM_CONSUMERS; i++){
 			openNewGameRoomCommandConsumer = context.getBean(OpenNewGameRoomCommandConsumer.class);
 			openNewGameRoomCommandConsumer.setConsumerToProducerAckQueue(newGameRoomOpenAckQueue);
+			initSingleConsumer(openNewGameRoomCommandConsumer, KafkaUtils.OPEN_NEW_GAME_ROOM_COMMAND_TOPIC, openNewGameRoomCommandConfig, newGameRoomOpenQueue);
 			
-			initSingleConsumer(openNewGameRoomCommandConsumer, KafkaUtils.OPEN_NEW_GAME_ROOM_COMMAND_TOPIC, openNewGameRoomCommandConfig, newGameRoomOpenQueue);						
-			executeProducersAndConsumers(Arrays.asList(openNewGameRoomCommandConsumer));
+			closeGameRoomCommandConsumer = context.getBean(CloseGameRoomCommandConsumer.class);
+			closeGameRoomCommandConsumer.setConsumerToProducerAckQueue(closeGameRoomAckQueue);
+			initSingleConsumer(closeGameRoomCommandConsumer, KafkaUtils.CLOSE_GAME_ROOM_COMMAND_TOPIC, closeGameRoomCommandConfig, closeGameRoomQueue);
+			
+			executeProducersAndConsumers(Arrays.asList(openNewGameRoomCommandConsumer, closeGameRoomCommandConsumer));
 		}
 	}
 
@@ -148,10 +173,16 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		
 		initSingleProducer(newGameRoomOpenedEventAckProducer, KafkaUtils.NEW_GAME_ROOM_OPENED_EVENT_ACK_TOPIC, newGameRoomOpenAckQueue);
 		
+		initSingleProducer(gameRoomClosedEventProducer, KafkaUtils.GAME_ROOM_CLOSED_EVENT_TOPIC, closeGameRoomQueue);
+		
+		initSingleProducer(closeGameRoomEventAckProducer, KafkaUtils.CLOSE_GAME_ROOM_EVENT_ACK_TOPIC, closeGameRoomAckQueue);
+		
 		executeProducersAndConsumers(Arrays.asList(newUserJoinedLobbyEventsProducer, 
 				existingUserJoinedLobbyEventsProducer,
 				newGameRoomOpenedEventProducer,
-				newGameRoomOpenedEventAckProducer));		
+				newGameRoomOpenedEventAckProducer,
+				gameRoomClosedEventProducer,
+				closeGameRoomEventAckProducer));		
 	}
 
 	@Override

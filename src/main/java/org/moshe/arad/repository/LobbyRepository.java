@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.moshe.arad.entities.BackgammonUser;
 import org.moshe.arad.entities.GameRoom;
+import org.moshe.arad.local.snapshot.Snapshot;
 import org.moshe.arad.local.snapshot.SnapshotAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,11 +30,11 @@ public class LobbyRepository {
 	
 	
 	public boolean isUserEngagedInOtherRoom(String username){
-		Map<String,Map<Object, Object>> snapshot = snapshotAPI.doEventsFoldingAndGetInstanceWithoutSaving();
+		Snapshot snapshot = snapshotAPI.doEventsFoldingAndGetInstanceWithoutSaving();
 		
 		if(snapshot == null) throw new RuntimeException("Failed to grab snapshot from events store...");
 		else{
-			Set<Map.Entry<Object, Object>> entries = snapshot.get(SnapshotAPI.GAME_ROOMS).entrySet();
+			Set<Map.Entry<Object, Object>> entries = snapshot.getRooms().entrySet();
 			Iterator<Map.Entry<Object, Object>> it = entries.iterator();
 			
 			while(it.hasNext()){
@@ -50,5 +51,24 @@ public class LobbyRepository {
 			}
 		}
 		return false;
+	}
+	
+	public GameRoom getGameRoomToClose(String username){
+		Snapshot snapshot = snapshotAPI.doEventsFoldingAndGetInstanceWithoutSaving();
+		
+		if(snapshot == null) throw new RuntimeException("Failed to grab snapshot from events store...");
+		else{
+			if(!snapshot.getUsersOpenedBy().containsKey(username)) return null;
+			else {
+				ObjectMapper objectMapper = new ObjectMapper();
+				GameRoom result = null;
+				try {
+					result = objectMapper.readValue(snapshot.getRooms().get(snapshot.getUsersOpenedBy().get(username)).toString(), GameRoom.class);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+				return result;
+			}
+		}
 	}
 }

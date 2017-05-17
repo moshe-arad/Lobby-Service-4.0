@@ -42,6 +42,7 @@ public class SnapshotAPI implements ApplicationContextAware {
 	@Autowired
 	private StringRedisTemplate stringRedisTemplate;
 	
+	@Autowired
 	private ApplicationContext context;
 	
 	private Map<UUID, LinkedList<BackgammonEvent>> eventsfromMongo = new HashMap<>();
@@ -58,6 +59,7 @@ public class SnapshotAPI implements ApplicationContextAware {
 	
 	public static final String LAST_UPDATED = "lastUpdateSnapshotDate";
 	public static final String GAME_ROOMS = "GameRooms";
+	public static final String USERS_OPENED_BY = "UsersOpenedBy";
 	
 	public boolean isLastUpdateDateExists(){
 		try{
@@ -88,24 +90,29 @@ public class SnapshotAPI implements ApplicationContextAware {
 		readWriteLock.writeLock().unlock();
 	}
 	
-	public Map<String,Map<Object, Object>> readLatestSnapshot(){
+	public Snapshot readLatestSnapshot(){
+		Snapshot result = context.getBean(Snapshot.class);
+		
 		if(!isLastUpdateDateExists()) return null;
 		else{
 			readWriteLock.readLock().lock();
 			
 			Map<Object, Object> gameRooms = redisTemplate.opsForHash().entries(GAME_ROOMS);
+			Map<Object, Object> usersOpenedBy = redisTemplate.opsForHash().entries(USERS_OPENED_BY);
 			
 			readWriteLock.readLock().unlock();
 			
-			Map<String,Map<Object, Object>> result = new HashMap<String, Map<Object, Object>>(10000);
+			HashMap<Object, Object> gameRoomsHash = new HashMap<>(gameRooms);
+			HashMap<Object, Object> usersOpenedByHash = new HashMap<>(usersOpenedBy);
 			
-			if(gameRooms != null) result.put(GAME_ROOMS, gameRooms);
+			if(gameRooms != null) result.setRooms(gameRoomsHash);
+			if(usersOpenedBy != null) result.setRooms(usersOpenedByHash);
 			
 			return result;
 		}
 	}	
 	
-	public Map<String,Map<Object, Object>> doEventsFoldingAndGetInstanceWithoutSaving(){		
+	public Snapshot doEventsFoldingAndGetInstanceWithoutSaving(){		
 		logger.info("Preparing command producer...");
 		PullEventsWithoutSavingCommandsProducer pullEventsWithoutSavingCommandsProducer = context.getBean(PullEventsWithoutSavingCommandsProducer.class);
 		UUID uuid = initSingleProducer(pullEventsWithoutSavingCommandsProducer, KafkaUtils.LOBBY_SERVICE_PULL_EVENTS_WITHOUT_SAVING_COMMAND_TOPIC);
@@ -133,14 +140,15 @@ public class SnapshotAPI implements ApplicationContextAware {
 		return producer.getUuid();
 	}
 	
-	public void updateLatestSnapshot(Map<String,Map<Object, Object>> snapshot){
+	public void updateLatestSnapshot(Snapshot snapshot){
 		
 		readWriteLock.writeLock().lock();
 		
+		redisTemplate.expire(USERS_OPENED_BY, 1, TimeUnit.NANOSECONDS);
 		redisTemplate.expire(GAME_ROOMS, 1, TimeUnit.NANOSECONDS);
 		redisTemplate.expire(LAST_UPDATED, 1, TimeUnit.NANOSECONDS);
 		
-		while(redisTemplate.hasKey(GAME_ROOMS)){
+		while(redisTemplate.hasKey(GAME_ROOMS) || redisTemplate.hasKey(USERS_OPENED_BY) || redisTemplate.hasKey(LAST_UPDATED)){
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
@@ -149,28 +157,22 @@ public class SnapshotAPI implements ApplicationContextAware {
 		}
 		
 		
-		saveDataFromSnapshot(snapshot, GAME_ROOMS);
+		redisTemplate.opsForHash().putAll(GAME_ROOMS, snapshot.getRooms());
+		redisTemplate.opsForHash().putAll(USERS_OPENED_BY, snapshot.getUsersOpenedBy());
 		
 		readWriteLock.writeLock().unlock();				
-	}
-
-	private void saveDataFromSnapshot(Map<String,Map<Object, Object>> snapshot, String key) {
-		redisTemplate.opsForHash().putAll(key, snapshot.get(key));
 	}
 	
 	/**
 	 * calculate instance after events fold, will return this instance without saving it into Redis.
 	 * @return 
 	 */
-	public Map<String,Map<Object, Object>> getInstanceFromEventsFold(LinkedList<BackgammonEvent> fromMongoEventsStoreEventList){
+	public Snapshot getInstanceFromEventsFold(LinkedList<BackgammonEvent> fromMongoEventsStoreEventList){
 		boolean isLatestSnapshotExists = this.readLatestSnapshot() == null ? false : true;
-		Map<String,Map<Object, Object>> currentSnapshot;
+		Snapshot currentSnapshot = null;
 		
 		if(isLatestSnapshotExists) currentSnapshot = this.readLatestSnapshot();
-		else {
-			currentSnapshot = new HashMap<>(10000);
-			currentSnapshot.put(GAME_ROOMS, new HashMap<>());
-		}
+		else currentSnapshot = context.getBean(Snapshot.class);
 
 		ListIterator<BackgammonEvent> it = fromMongoEventsStoreEventList.listIterator();
 		
@@ -190,7 +192,8 @@ public class SnapshotAPI implements ApplicationContextAware {
 				} catch (JsonProcessingException e) {
 					e.printStackTrace();
 				}
-				currentSnapshot.get(GAME_ROOMS).put(gameRoom.getName(), gameRoomJson);
+				currentSnapshot.getRooms().put(gameRoom.getName(), gameRoomJson);
+				currentSnapshot.getUsersOpenedBy().put(gameRoom.getOpenBy(), gameRoom.getName());
 			}
 			
 			logger.info("Event to folded successfuly = " + eventToFold);
