@@ -13,6 +13,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.moshe.arad.kafka.ConsumerToProducerQueue;
 import org.moshe.arad.kafka.EventsBasketFromMongo;
 import org.moshe.arad.kafka.events.BackgammonEvent;
+import org.moshe.arad.kafka.events.GameRoomClosedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.events.NewUserCreatedEvent;
 import org.moshe.arad.local.snapshot.SnapshotAPI;
@@ -65,14 +66,20 @@ public class FromMongoWithoutSavingEventsConsumer extends SimpleEventsConsumer {
 
 				eventsBasketFromMongo.addEventToCollectedEvents(uuid, backgammonEvent);
 			}
-			else{
-				if(!eventsBasketFromMongo.isGotTotalNumOfEvents(uuid)) substrcatEventsNum+=1;
-				else if(substrcatEventsNum != -1){
-					eventsBasketFromMongo.substractNumOfEvents(substrcatEventsNum, uuid);
-					substrcatEventsNum = -1;
-				}
-				else eventsBasketFromMongo.substractNumOfEvents(1, uuid);				
+			else if(clazz.equals("GameRoomClosedEvent")){
+				GameRoomClosedEvent gameRoomClosedEvent = objectMapper.readValue(record.value(), GameRoomClosedEvent.class);
+				backgammonEvent = gameRoomClosedEvent;
+
+				eventsBasketFromMongo.addEventToCollectedEvents(uuid, backgammonEvent);
 			}
+//			else{
+//				if(!eventsBasketFromMongo.isGotTotalNumOfEvents(uuid)) substrcatEventsNum+=1;
+//				else if(substrcatEventsNum != -1){
+//					eventsBasketFromMongo.substractNumOfEvents(substrcatEventsNum, uuid);
+//					substrcatEventsNum = -1;
+//				}
+//				else eventsBasketFromMongo.substractNumOfEvents(1, uuid);				
+//			}
 			
 			if(eventsBasketFromMongo.isReadyHandleEventsFromMongo(uuid)){
 				logger.info("Updating SnapshotAPI with collected events data from mongo events store...");
