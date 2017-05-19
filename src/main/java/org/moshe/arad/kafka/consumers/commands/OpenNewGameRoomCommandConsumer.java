@@ -48,7 +48,7 @@ public class OpenNewGameRoomCommandConsumer extends SimpleCommandsConsumer{
 			NewGameRoomOpenedEvent newGameRoomOpenedEvent = context.getBean(NewGameRoomOpenedEvent.class);
 			GameRoom gameRoom = context.getBean(GameRoom.class);
 		
-			gameRoom.setName("Backgammon game room " + openNewGameRoomCommand.getUuid().toString());
+			gameRoom.setName("A" + openNewGameRoomCommand.getUuid().toString().replaceAll("-", "").substring(0, 14));
 			gameRoom.setOpenBy(openNewGameRoomCommand.getUsername());
 			gameRoom.setSecondPlayer("");
 			gameRoom.setWatchers(new ArrayList<String>());

@@ -71,4 +71,46 @@ public class LobbyRepository {
 			}
 		}
 	}
+	
+	public GameRoom getGameRoomToAddWatcherTo(String gameRoomName, String watcher){
+		Snapshot snapshot = snapshotAPI.doEventsFoldingAndGetInstanceWithoutSaving();
+		
+		if(snapshot == null) throw new RuntimeException("Failed to grab snapshot from events store...");
+		else if(isUserEngagedInOtherRoom(watcher, snapshot) == true) return null;
+		else{
+			if(!snapshot.getRooms().containsKey(gameRoomName)) return null;
+			else {
+				ObjectMapper objectMapper = new ObjectMapper();
+				GameRoom result = null;
+				try {
+					result = objectMapper.readValue(snapshot.getRooms().get(gameRoomName).toString(), GameRoom.class);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+				return result;
+			}
+		}
+	}
+	
+	private boolean isUserEngagedInOtherRoom(String username, Snapshot snapshot){
+		if(snapshot == null) throw new RuntimeException("Failed to grab snapshot from events store...");
+		else{
+			Set<Map.Entry<Object, Object>> entries = snapshot.getRooms().entrySet();
+			Iterator<Map.Entry<Object, Object>> it = entries.iterator();
+			
+			while(it.hasNext()){
+				Map.Entry<Object, Object> entry = it.next();
+				ObjectMapper objectMapper = new ObjectMapper();
+				try {
+					GameRoom gameRoom = objectMapper.readValue(entry.getValue().toString(), GameRoom.class);
+					if(gameRoom.getOpenBy().equals(username) 
+							|| gameRoom.getSecondPlayer().equals(username) 
+							|| gameRoom.getWatchers().contains(username)) return true;
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+		}
+		return false;
+	}
 }

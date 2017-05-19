@@ -19,6 +19,7 @@ import org.moshe.arad.kafka.KafkaUtils;
 import org.moshe.arad.kafka.events.BackgammonEvent;
 import org.moshe.arad.kafka.events.GameRoomClosedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
+import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
 import org.moshe.arad.kafka.producers.commands.ISimpleCommandProducer;
 import org.moshe.arad.kafka.producers.commands.PullEventsWithoutSavingCommandsProducer;
 import org.slf4j.Logger;
@@ -214,6 +215,24 @@ public class SnapshotAPI implements ApplicationContextAware {
 				if(currentSnapshot.getRooms().containsKey(gameRoom.getName())) 
 					currentSnapshot.getRooms().remove(gameRoom.getName());				
 			}
+			else if(eventToFold.getClazz().equals("UserAddedAsWatcherEvent")){
+				UserAddedAsWatcherEvent userAddedAsWatcherEvent = (UserAddedAsWatcherEvent)eventToFold;
+				GameRoom gameRoom = userAddedAsWatcherEvent.getGameRoom();
+				if(!gameRoom.getWatchers().contains(userAddedAsWatcherEvent.getUsername())) gameRoom.getWatchers().add(userAddedAsWatcherEvent.getUsername());
+					
+				ObjectMapper objectMapper = new ObjectMapper();
+				String gameRoomJson = null;
+				try {
+					gameRoomJson = objectMapper.writeValueAsString(gameRoom);
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+				}
+				
+				currentSnapshot.getUsersWatchers().put(userAddedAsWatcherEvent.getUsername(), gameRoom.getName());
+				
+				currentSnapshot.getRooms().put(gameRoom.getName(), gameRoomJson);								
+			}
+			
 			logger.info("Event to folded successfuly = " + eventToFold);
 		}
 		
