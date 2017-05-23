@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 @Scope("prototype")
 public class GameRoomClosedEvent extends BackgammonEvent{
 
+	private String closedByUserName;
 	private GameRoom gameRoom;
 	
 	public GameRoomClosedEvent() {
@@ -18,9 +19,23 @@ public class GameRoomClosedEvent extends BackgammonEvent{
 		this.gameRoom = gameRoom;
 	}
 
+	public GameRoomClosedEvent(String closedByUserName, GameRoom gameRoom) {
+		super();
+		this.closedByUserName = closedByUserName;
+		this.gameRoom = gameRoom;
+	}
+
 	@Override
 	public String toString() {
-		return "GameRoomClosedEvent [gameRoom=" + gameRoom + "]";
+		return "GameRoomClosedEvent [closedByUserName=" + closedByUserName + ", gameRoom=" + gameRoom + "]";
+	}
+
+	public String getClosedByUserName() {
+		return closedByUserName;
+	}
+
+	public void setClosedByUserName(String closedByUserName) {
+		this.closedByUserName = closedByUserName;
 	}
 
 	public GameRoom getGameRoom() {

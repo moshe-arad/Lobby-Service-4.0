@@ -17,6 +17,7 @@ import org.moshe.arad.kafka.events.GameRoomClosedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.events.NewUserCreatedEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
+import org.moshe.arad.kafka.events.WatcherRemovedEvent;
 import org.moshe.arad.local.snapshot.SnapshotAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +77,12 @@ public class FromMongoWithoutSavingEventsConsumer extends SimpleEventsConsumer {
 			else if(clazz.equals("UserAddedAsWatcherEvent")){
 				UserAddedAsWatcherEvent userAddedAsWatcherEvent = objectMapper.readValue(record.value(), UserAddedAsWatcherEvent.class);
 				backgammonEvent = userAddedAsWatcherEvent;
+
+				eventsBasketFromMongo.addEventToCollectedEvents(uuid, backgammonEvent);
+			}
+			else if(clazz.equals("WatcherRemovedEvent")){
+				WatcherRemovedEvent watcherRemovedEvent = objectMapper.readValue(record.value(), WatcherRemovedEvent.class);
+				backgammonEvent = watcherRemovedEvent;
 
 				eventsBasketFromMongo.addEventToCollectedEvents(uuid, backgammonEvent);
 			}

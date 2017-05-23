@@ -1,5 +1,6 @@
 package org.moshe.arad.local.snapshot;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,6 +21,7 @@ import org.moshe.arad.kafka.events.BackgammonEvent;
 import org.moshe.arad.kafka.events.GameRoomClosedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
+import org.moshe.arad.kafka.events.WatcherRemovedEvent;
 import org.moshe.arad.kafka.producers.commands.ISimpleCommandProducer;
 import org.moshe.arad.kafka.producers.commands.PullEventsWithoutSavingCommandsProducer;
 import org.slf4j.Logger;
@@ -231,6 +233,19 @@ public class SnapshotAPI implements ApplicationContextAware {
 				currentSnapshot.getUsersWatchers().put(userAddedAsWatcherEvent.getUsername(), gameRoom.getName());
 				
 				currentSnapshot.getRooms().put(gameRoom.getName(), gameRoomJson);								
+			}
+			else if(eventToFold.getClazz().equals("WatcherRemovedEvent")){
+				WatcherRemovedEvent watcherRemovedEvent = (WatcherRemovedEvent)eventToFold;
+		
+				ObjectMapper objectMapper = new ObjectMapper();
+				try {
+					GameRoom gameRoom = objectMapper.readValue(currentSnapshot.getRooms().get(watcherRemovedEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					gameRoom.getWatchers().remove(watcherRemovedEvent.getRemovedWatcher());
+					String gameRoomJson = objectMapper.writeValueAsString(gameRoom);
+					currentSnapshot.getRooms().put(watcherRemovedEvent.getGameRoom().getName(), gameRoomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 			
 			logger.info("Event to folded successfuly = " + eventToFold);

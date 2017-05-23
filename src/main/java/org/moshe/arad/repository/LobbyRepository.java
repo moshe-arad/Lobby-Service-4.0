@@ -1,6 +1,7 @@
 package org.moshe.arad.repository;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,38 @@ public class LobbyRepository {
 	public LobbyRepository() {
 	}
 	
+	public List<GameRoom> getUserEngagedGameRooms(String username){
+		List<GameRoom> result = new ArrayList<>(100000);
+		Snapshot snapshot = snapshotAPI.doEventsFoldingAndGetInstanceWithoutSaving();
+		
+		if(snapshot == null) throw new RuntimeException("Failed to grab snapshot from events store...");
+		else{
+			if(snapshot.getUsersWatchers().containsKey(username)){
+				String gameRoomName = snapshot.getUsersWatchers().get(username).toString();
+				ObjectMapper objectMapper = new ObjectMapper();
+				GameRoom gameRoom = null;
+				try {
+					gameRoom = objectMapper.readValue(snapshot.getRooms().get(gameRoomName).toString(), GameRoom.class);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				result.add(gameRoom);
+			}
+			else if(snapshot.getUsersOpenedBy().containsKey(username)){
+				String gameRoomName = snapshot.getUsersOpenedBy().get(username).toString();
+				ObjectMapper objectMapper = new ObjectMapper();
+				GameRoom gameRoom = null;
+				try {
+					gameRoom = objectMapper.readValue(snapshot.getRooms().get(gameRoomName).toString(), GameRoom.class);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				result.add(gameRoom);
+			}
+			//TODO handle 2nd player (join)
+			return result;
+		}
+	}
 	
 	public boolean isUserEngagedInOtherRoom(String username){
 		Snapshot snapshot = snapshotAPI.doEventsFoldingAndGetInstanceWithoutSaving();

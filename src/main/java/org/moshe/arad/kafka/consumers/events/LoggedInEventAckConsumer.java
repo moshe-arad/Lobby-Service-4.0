@@ -9,7 +9,6 @@ import org.moshe.arad.entities.Status;
 import org.moshe.arad.kafka.ConsumerToProducerQueue;
 import org.moshe.arad.kafka.events.ExistingUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.events.LoggedInEvent;
-import org.moshe.arad.services.Lobby;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Component
 @Scope("prototype")
 public class LoggedInEventAckConsumer extends SimpleEventsConsumer {
-
-	@Autowired
-	private Lobby lobby;
 	
 	@Autowired
 	private ApplicationContext context;
