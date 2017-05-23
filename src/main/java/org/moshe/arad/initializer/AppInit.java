@@ -159,7 +159,6 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		
 		for(int i=0; i<NUM_CONSUMERS; i++){
 			openNewGameRoomCommandConsumer = context.getBean(OpenNewGameRoomCommandConsumer.class);
-			openNewGameRoomCommandConsumer.setConsumerToProducerAckQueue(newGameRoomOpenAckQueue);
 			initSingleConsumer(openNewGameRoomCommandConsumer, KafkaUtils.OPEN_NEW_GAME_ROOM_COMMAND_TOPIC, openNewGameRoomCommandConfig, newGameRoomOpenQueue);
 			
 			closeGameRoomCommandConsumer = context.getBean(CloseGameRoomCommandConsumer.class);
