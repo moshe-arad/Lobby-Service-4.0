@@ -33,7 +33,6 @@ import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEventAck;
 import org.moshe.arad.kafka.events.NewUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
-import org.moshe.arad.kafka.events.UserAddedAsWatcherEventAck;
 import org.moshe.arad.kafka.events.WatcherRemovedEvent;
 import org.moshe.arad.kafka.producers.ISimpleProducer;
 import org.moshe.arad.kafka.producers.commands.ISimpleCommandProducer;
@@ -106,9 +105,6 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	@Autowired
 	private SimpleEventsProducer<UserAddedAsWatcherEvent> userAddedAsWatcherEventProducer;
 	
-	@Autowired
-	private SimpleEventsProducer<UserAddedAsWatcherEventAck> userAddedAsWatcherEventAckProducer;
-	
 	private LoggedOutEventConsumer loggedOutEventConsumer;
 	
 	@Autowired
@@ -165,8 +161,7 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 			closeGameRoomCommandConsumer.setConsumerToProducerAckQueue(closeGameRoomAckQueue);
 			initSingleConsumer(closeGameRoomCommandConsumer, KafkaUtils.CLOSE_GAME_ROOM_COMMAND_TOPIC, closeGameRoomCommandConfig, closeGameRoomQueue);
 			
-			addUserAsWatcherCommandConsumer = context.getBean(AddUserAsWatcherCommandConsumer.class);
-			addUserAsWatcherCommandConsumer.setConsumerToProducerAckQueue(addWatcherAckQueue);			
+			addUserAsWatcherCommandConsumer = context.getBean(AddUserAsWatcherCommandConsumer.class);		
 			initSingleConsumer(addUserAsWatcherCommandConsumer, KafkaUtils.ADD_USER_AS_WATCHER_COMMAND_TOPIC, addUserAsWatcherCommandConfig, addWatcherQueue);
 			
 			executeProducersAndConsumers(Arrays.asList(openNewGameRoomCommandConsumer, 
@@ -230,7 +225,6 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		
 		initSingleProducer(userAddedAsWatcherEventProducer, KafkaUtils.USER_ADDED_AS_WATCHER_EVENT_TOPIC, addWatcherQueue);
 		
-		initSingleProducer(userAddedAsWatcherEventAckProducer, KafkaUtils.USER_ADDED_AS_WATCHER_EVENT_ACK_TOPIC, addWatcherAckQueue);
 		
 		initSingleProducer(gameRoomClosedEventProducerLogout, KafkaUtils.GAME_ROOM_CLOSED_EVENT_LOGOUT_TOPIC, logoutOpenedByQueue);
 		
@@ -243,7 +237,6 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 				gameRoomClosedEventProducer,
 				closeGameRoomEventAckProducer,
 				userAddedAsWatcherEventProducer,
-				userAddedAsWatcherEventAckProducer,
 				gameRoomClosedEventProducerLogout,
 				watcherRemovedEventProducer));		
 	}
