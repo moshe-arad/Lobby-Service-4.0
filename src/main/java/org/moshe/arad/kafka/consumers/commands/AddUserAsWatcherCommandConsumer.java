@@ -36,7 +36,7 @@ public class AddUserAsWatcherCommandConsumer extends SimpleCommandsConsumer{
 	public void consumerOperations(ConsumerRecord<String, String> record) {
 		AddUserAsWatcherCommand addUserAsWatcherCommand = convertJsonBlobIntoEvent(record.value()); 
 		
-		GameRoom gameRoomToAddWatcherTo = lobbyRepository.getGameRoomToAddWatcherTo(addUserAsWatcherCommand.getGameRoomName(), addUserAsWatcherCommand.getUsername());
+		GameRoom gameRoomToAddWatcherTo = lobbyRepository.getGameRoomToAddWatcherToOrAddSecondPlayer(addUserAsWatcherCommand.getGameRoomName(), addUserAsWatcherCommand.getUsername());
 		
 		if(gameRoomToAddWatcherTo != null){												
 			logger.info("Validation passed...");

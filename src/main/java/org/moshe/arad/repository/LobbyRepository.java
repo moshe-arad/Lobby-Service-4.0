@@ -105,11 +105,11 @@ public class LobbyRepository {
 		}
 	}
 	
-	public GameRoom getGameRoomToAddWatcherTo(String gameRoomName, String watcher){
+	public GameRoom getGameRoomToAddWatcherToOrAddSecondPlayer(String gameRoomName, String watcherOrSecondPlayer){
 		Snapshot snapshot = snapshotAPI.doEventsFoldingAndGetInstanceWithoutSaving();
 		
 		if(snapshot == null) throw new RuntimeException("Failed to grab snapshot from events store...");
-		else if(isUserEngagedInOtherRoom(watcher, snapshot) == true) return null;
+		else if(isUserEngagedInOtherRoom(watcherOrSecondPlayer, snapshot) == true) return null;
 		else{
 			if(!snapshot.getRooms().containsKey(gameRoomName)) return null;
 			else {

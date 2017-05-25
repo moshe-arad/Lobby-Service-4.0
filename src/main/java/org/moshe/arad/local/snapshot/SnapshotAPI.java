@@ -20,6 +20,7 @@ import org.moshe.arad.kafka.KafkaUtils;
 import org.moshe.arad.kafka.events.BackgammonEvent;
 import org.moshe.arad.kafka.events.GameRoomClosedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
+import org.moshe.arad.kafka.events.UserAddedAsSecondPlayerEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
 import org.moshe.arad.kafka.events.WatcherRemovedEvent;
 import org.moshe.arad.kafka.producers.commands.ISimpleCommandProducer;
@@ -243,6 +244,19 @@ public class SnapshotAPI implements ApplicationContextAware {
 					gameRoom.getWatchers().remove(watcherRemovedEvent.getRemovedWatcher());
 					String gameRoomJson = objectMapper.writeValueAsString(gameRoom);
 					currentSnapshot.getRooms().put(watcherRemovedEvent.getGameRoom().getName(), gameRoomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			else if(eventToFold.getClazz().equals("UserAddedAsSecondPlayerEvent")){
+				UserAddedAsSecondPlayerEvent userAddedAsSecondPlayerEvent = (UserAddedAsSecondPlayerEvent)eventToFold;
+		
+				ObjectMapper objectMapper = new ObjectMapper();
+				try {
+					GameRoom gameRoom = objectMapper.readValue(currentSnapshot.getRooms().get(userAddedAsSecondPlayerEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					gameRoom.setSecondPlayer(userAddedAsSecondPlayerEvent.getUsername());
+					String gameRoomJson = objectMapper.writeValueAsString(gameRoom);
+					currentSnapshot.getRooms().put(userAddedAsSecondPlayerEvent.getGameRoom().getName(), gameRoomJson);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
