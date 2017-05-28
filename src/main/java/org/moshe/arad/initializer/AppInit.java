@@ -193,6 +193,7 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		
 		for(int i=0; i<NUM_CONSUMERS; i++){
 			newUserCreatedEventAckConsumer = context.getBean(NewUserCreatedEventAckConsumer.class);
+			
 			logger.info("Initializing new user created event consumer...");
 			initSingleConsumer(newUserCreatedEventAckConsumer, KafkaUtils.NEW_USER_CREATED_EVENT_ACK_TOPIC, newUserCreatedEventConfig, consumerToProducerQueue);
 			logger.info("Initialize new user created event, completed...");
