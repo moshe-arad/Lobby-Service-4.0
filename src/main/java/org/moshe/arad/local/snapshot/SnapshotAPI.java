@@ -18,11 +18,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.moshe.arad.entities.GameRoom;
 import org.moshe.arad.kafka.KafkaUtils;
 import org.moshe.arad.kafka.events.BackgammonEvent;
-import org.moshe.arad.kafka.events.GameRoomClosedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.events.UserAddedAsSecondPlayerEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
-import org.moshe.arad.kafka.events.WatcherRemovedEvent;
 import org.moshe.arad.kafka.producers.commands.ISimpleCommandProducer;
 import org.moshe.arad.kafka.producers.commands.PullEventsWithoutSavingCommandsProducer;
 import org.slf4j.Logger;
@@ -200,24 +198,6 @@ public class SnapshotAPI implements ApplicationContextAware {
 				currentSnapshot.getRooms().put(gameRoom.getName(), gameRoomJson);
 				currentSnapshot.getUsersOpenedBy().put(gameRoom.getOpenBy(), gameRoom.getName());
 			}
-			else if(eventToFold.getClazz().equals("GameRoomClosedEvent")){
-				GameRoomClosedEvent gameRoomClosedEvent = (GameRoomClosedEvent)eventToFold;
-				GameRoom gameRoom = gameRoomClosedEvent.getGameRoom();
-				
-				ObjectMapper objectMapper = new ObjectMapper();
-				String gameRoomJson = null;
-				try {
-					gameRoomJson = objectMapper.writeValueAsString(gameRoom);
-				} catch (JsonProcessingException e) {
-					e.printStackTrace();
-				}
-				
-				if(currentSnapshot.getUsersOpenedBy().containsKey(gameRoom.getOpenBy()))
-					currentSnapshot.getUsersOpenedBy().remove(gameRoom.getOpenBy());				
-				
-				if(currentSnapshot.getRooms().containsKey(gameRoom.getName())) 
-					currentSnapshot.getRooms().remove(gameRoom.getName());				
-			}
 			else if(eventToFold.getClazz().equals("UserAddedAsWatcherEvent")){
 				UserAddedAsWatcherEvent userAddedAsWatcherEvent = (UserAddedAsWatcherEvent)eventToFold;
 				GameRoom gameRoom = userAddedAsWatcherEvent.getGameRoom();
@@ -234,19 +214,6 @@ public class SnapshotAPI implements ApplicationContextAware {
 				currentSnapshot.getUsersWatchers().put(userAddedAsWatcherEvent.getUsername(), gameRoom.getName());
 				
 				currentSnapshot.getRooms().put(gameRoom.getName(), gameRoomJson);								
-			}
-			else if(eventToFold.getClazz().equals("WatcherRemovedEvent")){
-				WatcherRemovedEvent watcherRemovedEvent = (WatcherRemovedEvent)eventToFold;
-		
-				ObjectMapper objectMapper = new ObjectMapper();
-				try {
-					GameRoom gameRoom = objectMapper.readValue(currentSnapshot.getRooms().get(watcherRemovedEvent.getGameRoom().getName()).toString(), GameRoom.class);
-					gameRoom.getWatchers().remove(watcherRemovedEvent.getRemovedWatcher());
-					String gameRoomJson = objectMapper.writeValueAsString(gameRoom);
-					currentSnapshot.getRooms().put(watcherRemovedEvent.getGameRoom().getName(), gameRoomJson);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
 			}
 			else if(eventToFold.getClazz().equals("UserAddedAsSecondPlayerEvent")){
 				UserAddedAsSecondPlayerEvent userAddedAsSecondPlayerEvent = (UserAddedAsSecondPlayerEvent)eventToFold;

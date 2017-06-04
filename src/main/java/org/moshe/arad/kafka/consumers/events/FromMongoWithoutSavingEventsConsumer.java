@@ -1,11 +1,7 @@
 package org.moshe.arad.kafka.consumers.events;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -13,12 +9,9 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.moshe.arad.kafka.ConsumerToProducerQueue;
 import org.moshe.arad.kafka.EventsBasketFromMongo;
 import org.moshe.arad.kafka.events.BackgammonEvent;
-import org.moshe.arad.kafka.events.GameRoomClosedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
-import org.moshe.arad.kafka.events.NewUserCreatedEvent;
 import org.moshe.arad.kafka.events.UserAddedAsSecondPlayerEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
-import org.moshe.arad.kafka.events.WatcherRemovedEvent;
 import org.moshe.arad.local.snapshot.SnapshotAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,21 +62,9 @@ public class FromMongoWithoutSavingEventsConsumer extends SimpleEventsConsumer {
 
 				eventsBasketFromMongo.addEventToCollectedEvents(uuid, backgammonEvent);
 			}
-			else if(clazz.equals("GameRoomClosedEvent")){
-				GameRoomClosedEvent gameRoomClosedEvent = objectMapper.readValue(record.value(), GameRoomClosedEvent.class);
-				backgammonEvent = gameRoomClosedEvent;
-
-				eventsBasketFromMongo.addEventToCollectedEvents(uuid, backgammonEvent);
-			}
 			else if(clazz.equals("UserAddedAsWatcherEvent")){
 				UserAddedAsWatcherEvent userAddedAsWatcherEvent = objectMapper.readValue(record.value(), UserAddedAsWatcherEvent.class);
 				backgammonEvent = userAddedAsWatcherEvent;
-
-				eventsBasketFromMongo.addEventToCollectedEvents(uuid, backgammonEvent);
-			}
-			else if(clazz.equals("WatcherRemovedEvent")){
-				WatcherRemovedEvent watcherRemovedEvent = objectMapper.readValue(record.value(), WatcherRemovedEvent.class);
-				backgammonEvent = watcherRemovedEvent;
 
 				eventsBasketFromMongo.addEventToCollectedEvents(uuid, backgammonEvent);
 			}
