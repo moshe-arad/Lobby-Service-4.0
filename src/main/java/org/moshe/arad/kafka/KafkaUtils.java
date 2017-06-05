@@ -36,11 +36,12 @@ public class KafkaUtils {
 	public static final String ADD_USER_AS_WATCHER_COMMAND_TOPIC = "Add-User-As-Watcher-Command";
 	public static final String USER_ADDED_AS_WATCHER_EVENT_TOPIC = "User-Added-As-Watcher-Event";
 	public static final String USER_ADDED_AS_WATCHER_EVENT_ACK_TOPIC = "User-Added-As-Watcher-Event-Ack";
-	public static final String LOGGED_OUT_EVENT_GROUP = "LoggedOutEventGroup3";
+	public static final String LOGGED_OUT_EVENT_GROUP = "LoggedOutEventGroup2";
 	public static final String LOGGED_OUT_EVENT_TOPIC = "Logged-Out-Event";
 	public static final String GAME_ROOM_CLOSED_EVENT_LOGOUT_TOPIC = "Game-Room-Closed-Event-Logout";
 	public static final String WATCHER_REMOVED_EVENT_TOPIC = "Watcher-Removed-Event";
 	public static final String ADD_USER_AS_SECOND_PLAYER_COMMAND_GROUP = "AddUserAsSecondPlayerCommandGroup";
 	public static final String ADD_USER_AS_SECOND_PLAYER_COMMAND_TOPIC = "Add-User-As-Second-Player-Command";
 	public static final String USER_ADDED_AS_SECOND_PLAYER_EVENT_TOPIC = "User-Added-As-Second-Player-Event";
+	public static final String LOGGED_OUT_USER_LEFT_LOBBY_EVENT_TOPIC = "Logged-Out-User-Left-Lobby-Event";
 }
