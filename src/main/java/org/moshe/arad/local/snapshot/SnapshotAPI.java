@@ -18,6 +18,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.moshe.arad.entities.GameRoom;
 import org.moshe.arad.kafka.KafkaUtils;
 import org.moshe.arad.kafka.events.BackgammonEvent;
+import org.moshe.arad.kafka.events.GameRoomClosedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.events.UserAddedAsSecondPlayerEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
@@ -224,9 +225,27 @@ public class SnapshotAPI implements ApplicationContextAware {
 					gameRoom.setSecondPlayer(userAddedAsSecondPlayerEvent.getUsername());
 					String gameRoomJson = objectMapper.writeValueAsString(gameRoom);
 					currentSnapshot.getRooms().put(userAddedAsSecondPlayerEvent.getGameRoom().getName(), gameRoomJson);
+					currentSnapshot.getUsersSecond().put(userAddedAsSecondPlayerEvent.getUsername(), gameRoom.getName());
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+			}
+			else if(eventToFold.getClazz().equals("LoggedOutOpenByLeftBeforeGameStartedEvent")){
+				continue;
+			}
+			else if(eventToFold.getClazz().equals("GameRoomClosedEvent")){
+				GameRoomClosedEvent gameRoomClosedEvent = (GameRoomClosedEvent)eventToFold;
+		
+				if(currentSnapshot.getUsersOpenedBy().containsKey(gameRoomClosedEvent.getLoggedOutUserName())){
+					currentSnapshot.getUsersOpenedBy().remove(gameRoomClosedEvent.getLoggedOutUserName());
+				}
+				else if(currentSnapshot.getUsersWatchers().containsKey(gameRoomClosedEvent.getLoggedOutUserName())){
+					currentSnapshot.getUsersWatchers().remove(gameRoomClosedEvent.getLoggedOutUserName());
+				}
+				else if(currentSnapshot.getUsersSecond().containsKey(gameRoomClosedEvent.getLoggedOutUserName())){
+					currentSnapshot.getUsersSecond().remove(gameRoomClosedEvent.getLoggedOutUserName());
+				}
+				currentSnapshot.getRooms().remove(gameRoomClosedEvent.getGameRoom().getName());
 			}
 			
 			logger.info("Event to folded successfuly = " + eventToFold);

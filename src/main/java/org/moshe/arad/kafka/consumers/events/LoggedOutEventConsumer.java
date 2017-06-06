@@ -14,6 +14,7 @@ import org.moshe.arad.kafka.events.BackgammonEvent;
 import org.moshe.arad.kafka.events.ExistingUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.events.LoggedInEvent;
 import org.moshe.arad.kafka.events.LoggedOutEvent;
+import org.moshe.arad.kafka.events.LoggedOutOpenByLeftBeforeGameStartedEvent;
 import org.moshe.arad.kafka.events.LoggedOutUserLeftLobbyEvent;
 import org.moshe.arad.repository.LobbyRepository;
 import org.slf4j.Logger;
@@ -60,6 +61,23 @@ public class LoggedOutEventConsumer extends SimpleEventsConsumer {
     			loggedOutUserLeftLobbyEvent.setBackgammonUser(loggedOutEvent.getBackgammonUser());
     			
     			consumerToProducer.get(LoggedOutUserLeftLobbyEvent.class).getEventsQueue().put(loggedOutUserLeftLobbyEvent);
+    		}
+    		else if(rooms.size() == 1){
+    			GameRoom room = rooms.get(0);
+    			
+    			if(!room.getOpenBy().equals("left") && !room.getOpenBy().isEmpty() && room.getSecondPlayer().isEmpty() && room.getWatchers().size() == 0){
+    				logger.info("User is engaged in a room which he's the only participant in it...");
+    				logger.info("User will try to leave this room...");
+    				
+    				LoggedOutOpenByLeftBeforeGameStartedEvent loggedOutOpenByLeftBeforeGameStartedEvent = context.getBean(LoggedOutOpenByLeftBeforeGameStartedEvent.class);
+    				loggedOutOpenByLeftBeforeGameStartedEvent.setUuid(loggedOutEvent.getUuid());
+    				loggedOutOpenByLeftBeforeGameStartedEvent.setArrived(new Date());
+    				loggedOutOpenByLeftBeforeGameStartedEvent.setClazz("LoggedOutOpenByLeftBeforeGameStartedEvent");
+    				loggedOutOpenByLeftBeforeGameStartedEvent.setLoggedOutUserName(user.getUserName());
+    				loggedOutOpenByLeftBeforeGameStartedEvent.setGameRoom(room);
+    				
+    				consumerToProducer.get(LoggedOutOpenByLeftBeforeGameStartedEvent.class).getEventsQueue().put(loggedOutOpenByLeftBeforeGameStartedEvent);
+    			}
     		}
     	}
 		catch (Exception ex) {

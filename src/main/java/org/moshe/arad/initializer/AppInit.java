@@ -19,6 +19,7 @@ import org.moshe.arad.kafka.consumers.config.AddUserAsWatcherCommandConfig;
 import org.moshe.arad.kafka.consumers.config.FromMongoWithoutSavingEventsConfig;
 import org.moshe.arad.kafka.consumers.config.LoggedInEventAckConfig;
 import org.moshe.arad.kafka.consumers.config.LoggedOutEventConfig;
+import org.moshe.arad.kafka.consumers.config.LoggedOutOpenByLeftBeforeGameStartedEventConfig;
 import org.moshe.arad.kafka.consumers.config.NewUserCreatedEventConfig;
 import org.moshe.arad.kafka.consumers.config.OpenNewGameRoomCommandConfig;
 import org.moshe.arad.kafka.consumers.config.SimpleConsumerConfig;
@@ -26,10 +27,13 @@ import org.moshe.arad.kafka.consumers.events.FromMongoWithSavingEventsConsumer;
 import org.moshe.arad.kafka.consumers.events.FromMongoWithoutSavingEventsConsumer;
 import org.moshe.arad.kafka.consumers.events.LoggedInEventAckConsumer;
 import org.moshe.arad.kafka.consumers.events.LoggedOutEventConsumer;
+import org.moshe.arad.kafka.consumers.events.LoggedOutOpenByLeftBeforeGameStartedEventConsumer;
 import org.moshe.arad.kafka.consumers.events.NewUserCreatedEventAckConsumer;
 import org.moshe.arad.kafka.events.BackgammonEvent;
 import org.moshe.arad.kafka.events.ExistingUserJoinedLobbyEvent;
+import org.moshe.arad.kafka.events.GameRoomClosedEvent;
 import org.moshe.arad.kafka.events.LoggedOutEvent;
+import org.moshe.arad.kafka.events.LoggedOutOpenByLeftBeforeGameStartedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEventAck;
 import org.moshe.arad.kafka.events.NewUserJoinedLobbyEvent;
@@ -112,6 +116,17 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	@Autowired
 	private SimpleEventsProducer<LoggedOutUserLeftLobbyEvent> loggedOutUserLeftLobbyEventProducer;
 	
+	@Autowired
+	private SimpleEventsProducer<LoggedOutOpenByLeftBeforeGameStartedEvent> loggedOutOpenByLeftBeforeGameStartedEventProducer;
+	
+	private LoggedOutOpenByLeftBeforeGameStartedEventConsumer loggedOutOpenByLeftBeforeGameStartedEventConsumer;
+	
+	@Autowired
+	private LoggedOutOpenByLeftBeforeGameStartedEventConfig loggedOutOpenByLeftBeforeGameStartedEventConfig;
+	
+	@Autowired
+	private SimpleEventsProducer<GameRoomClosedEvent> gameRoomClosedLoggedOutOpenByLeftBeforeGameStartedEventProducer;
+	
 	private ExecutorService executor = Executors.newFixedThreadPool(6);
 	
 	private Logger logger = LoggerFactory.getLogger(AppInit.class);
@@ -131,6 +146,10 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	private ConsumerToProducerQueue addSecondPlayerQueue;
 	
 	private ConsumerToProducerQueue userLeftLobbyQueue;
+	
+	private ConsumerToProducerQueue loggedOutOpenByLeftBeforeGameStartedQueue;
+	
+	private ConsumerToProducerQueue gameRoomClosedLoggedOutOpenByLeftBeforeGameStartedQueue;
 	
 	public static final int NUM_CONSUMERS = 3;
 	
@@ -162,6 +181,8 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		consumerToProducerQueue = context.getBean(ConsumerToProducerQueue.class);
 		loggedInEventAckQueue = context.getBean(ConsumerToProducerQueue.class); 
 		userLeftLobbyQueue = context.getBean(ConsumerToProducerQueue.class);
+		loggedOutOpenByLeftBeforeGameStartedQueue = context.getBean(ConsumerToProducerQueue.class);
+		gameRoomClosedLoggedOutOpenByLeftBeforeGameStartedQueue = context.getBean(ConsumerToProducerQueue.class);
 		
 		for(int i=0; i<NUM_CONSUMERS; i++){
 			newUserCreatedEventAckConsumer = context.getBean(NewUserCreatedEventAckConsumer.class);
@@ -180,14 +201,19 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 			
 			HashMap<Class<? extends BackgammonEvent>, ConsumerToProducerQueue> queueMap = new HashMap<>(10000);
 			queueMap.put(LoggedOutUserLeftLobbyEvent.class, userLeftLobbyQueue); 
+			queueMap.put(LoggedOutOpenByLeftBeforeGameStartedEvent.class, loggedOutOpenByLeftBeforeGameStartedQueue);
 			loggedOutEventConsumer.setConsumerToProducer(queueMap);
 			
 			initSingleConsumer(loggedOutEventConsumer, KafkaUtils.LOGGED_OUT_EVENT_TOPIC, loggedOutEventConfig);
 			
+			loggedOutOpenByLeftBeforeGameStartedEventConsumer = context.getBean(LoggedOutOpenByLeftBeforeGameStartedEventConsumer.class);
+			initSingleConsumer(loggedOutOpenByLeftBeforeGameStartedEventConsumer, KafkaUtils.LOGGED_OUT_OPENBY_LEFT_BEFORE_GAME_STARTED_EVENT_TOPIC, loggedOutOpenByLeftBeforeGameStartedEventConfig, gameRoomClosedLoggedOutOpenByLeftBeforeGameStartedQueue);
+			
 			executeProducersAndConsumers(Arrays.asList(newUserCreatedEventAckConsumer, 
 					loggedInEventAckConsumer,
 					fromMongoWithoutSavingEventsConsumer,
-					loggedOutEventConsumer));
+					loggedOutEventConsumer,
+					loggedOutOpenByLeftBeforeGameStartedEventConsumer));
 		}
 	}
 
@@ -215,6 +241,10 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		initSingleProducer(userAddedAsSecondPlayerEventProducer, KafkaUtils.USER_ADDED_AS_SECOND_PLAYER_EVENT_TOPIC, addSecondPlayerQueue);
 		
 		initSingleProducer(loggedOutUserLeftLobbyEventProducer, KafkaUtils.LOGGED_OUT_USER_LEFT_LOBBY_EVENT_TOPIC, userLeftLobbyQueue);
+
+		initSingleProducer(loggedOutOpenByLeftBeforeGameStartedEventProducer, KafkaUtils.LOGGED_OUT_OPENBY_LEFT_BEFORE_GAME_STARTED_EVENT_TOPIC, loggedOutOpenByLeftBeforeGameStartedQueue);
+		
+		initSingleProducer(gameRoomClosedLoggedOutOpenByLeftBeforeGameStartedEventProducer, KafkaUtils.GAME_ROOM_CLOSED_LOGGED_OUT_OPENBY_LEFT_BEFORE_GAME_STARTED_EVENT_TOPIC, gameRoomClosedLoggedOutOpenByLeftBeforeGameStartedQueue);
 		
 		executeProducersAndConsumers(Arrays.asList(newUserJoinedLobbyEventsProducer, 
 				existingUserJoinedLobbyEventsProducer,
@@ -222,7 +252,9 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 				newGameRoomOpenedEventAckProducer,
 				userAddedAsWatcherEventProducer,
 				userAddedAsSecondPlayerEventProducer,
-				loggedOutUserLeftLobbyEventProducer));		
+				loggedOutUserLeftLobbyEventProducer,
+				loggedOutOpenByLeftBeforeGameStartedEventProducer,
+				gameRoomClosedLoggedOutOpenByLeftBeforeGameStartedEventProducer));		
 	}
 
 	@Override

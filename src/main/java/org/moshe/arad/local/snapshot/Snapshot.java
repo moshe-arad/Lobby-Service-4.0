@@ -12,6 +12,7 @@ public class Snapshot {
 	private HashMap<Object, Object> rooms = new HashMap<>(100000);
 	private HashMap<Object, Object> usersOpenedBy = new HashMap<>(100000);
 	private HashMap<Object, Object> usersWatchers = new HashMap<>(100000);
+	private HashMap<Object, Object> usersSecond = new HashMap<>(100000);
 	
 	public Snapshot() {
 	
@@ -53,5 +54,13 @@ public class Snapshot {
 
 	public void setUsersWatchers(HashMap<Object, Object> usersWatchers) {
 		this.usersWatchers = usersWatchers;
+	}
+
+	public HashMap<Object, Object> getUsersSecond() {
+		return usersSecond;
+	}
+
+	public void setUsersSecond(HashMap<Object, Object> usersSecond) {
+		this.usersSecond = usersSecond;
 	}
 }
