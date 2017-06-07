@@ -14,7 +14,7 @@ public class SimpleProducerConfig {
 		properties.put("bootstrap.servers", KafkaUtils.SERVERS);
 		properties.put("key.serializer", KafkaUtils.STRING_SERIALIZER);
 		properties.put("value.serializer", KafkaUtils.STRING_SERIALIZER);
-		properties.put("acks", "all");
+		properties.put("acks", "1");
 		properties.put("compression.type", "snappy");
 //		properties.put("batch.size", "163840");
 //		properties.put("linger.ms", "5");

@@ -15,6 +15,7 @@ import org.moshe.arad.kafka.events.ExistingUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.events.LoggedInEvent;
 import org.moshe.arad.kafka.events.LoggedOutEvent;
 import org.moshe.arad.kafka.events.LoggedOutOpenByLeftBeforeGameStartedEvent;
+import org.moshe.arad.kafka.events.LoggedOutOpenByLeftEvent;
 import org.moshe.arad.kafka.events.LoggedOutUserLeftLobbyEvent;
 import org.moshe.arad.repository.LobbyRepository;
 import org.slf4j.Logger;
@@ -74,9 +75,25 @@ public class LoggedOutEventConsumer extends SimpleEventsConsumer {
     				loggedOutOpenByLeftBeforeGameStartedEvent.setArrived(new Date());
     				loggedOutOpenByLeftBeforeGameStartedEvent.setClazz("LoggedOutOpenByLeftBeforeGameStartedEvent");
     				loggedOutOpenByLeftBeforeGameStartedEvent.setLoggedOutUserName(user.getUserName());
+    				room.setOpenBy("left");
     				loggedOutOpenByLeftBeforeGameStartedEvent.setGameRoom(room);
     				
     				consumerToProducer.get(LoggedOutOpenByLeftBeforeGameStartedEvent.class).getEventsQueue().put(loggedOutOpenByLeftBeforeGameStartedEvent);
+    			}
+    			else if((!room.getOpenBy().equals("left") && !room.getOpenBy().isEmpty() && room.getSecondPlayer().isEmpty() && room.getWatchers().size() > 0) ||
+    					(!room.getOpenBy().equals("left") && !room.getOpenBy().isEmpty() && room.getSecondPlayer().equals("left") && room.getWatchers().size() > 0)){
+    				logger.info("User is engaged in a room which second player has left or did not joined yet, plus this game room has watchers...");
+    				logger.info("User will try to leave this room...");
+    				
+    				LoggedOutOpenByLeftEvent loggedOutOpenByLeftEvent = context.getBean(LoggedOutOpenByLeftEvent.class);
+    				loggedOutOpenByLeftEvent.setUuid(loggedOutEvent.getUuid());
+    				loggedOutOpenByLeftEvent.setArrived(new Date());
+    				loggedOutOpenByLeftEvent.setClazz("LoggedOutOpenByLeftEvent");
+    				loggedOutOpenByLeftEvent.setOpenBy(room.getOpenBy());
+    				room.setOpenBy("left");
+    				loggedOutOpenByLeftEvent.setGameRoom(room);
+    				
+    				consumerToProducer.get(LoggedOutOpenByLeftEvent.class).getEventsQueue().put(loggedOutOpenByLeftEvent);
     			}
     		}
     	}
