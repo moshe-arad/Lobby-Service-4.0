@@ -20,6 +20,7 @@ import org.moshe.arad.kafka.consumers.config.FromMongoWithoutSavingEventsConfig;
 import org.moshe.arad.kafka.consumers.config.LoggedInEventAckConfig;
 import org.moshe.arad.kafka.consumers.config.LoggedOutEventConfig;
 import org.moshe.arad.kafka.consumers.config.LoggedOutOpenByLeftBeforeGameStartedEventConfig;
+import org.moshe.arad.kafka.consumers.config.LoggedOutWatcherLeftLastEventConfig;
 import org.moshe.arad.kafka.consumers.config.NewUserCreatedEventConfig;
 import org.moshe.arad.kafka.consumers.config.OpenNewGameRoomCommandConfig;
 import org.moshe.arad.kafka.consumers.config.SimpleConsumerConfig;
@@ -28,6 +29,7 @@ import org.moshe.arad.kafka.consumers.events.FromMongoWithoutSavingEventsConsume
 import org.moshe.arad.kafka.consumers.events.LoggedInEventAckConsumer;
 import org.moshe.arad.kafka.consumers.events.LoggedOutEventConsumer;
 import org.moshe.arad.kafka.consumers.events.LoggedOutOpenByLeftBeforeGameStartedEventConsumer;
+import org.moshe.arad.kafka.consumers.events.LoggedOutWatcherLeftLastEventConsumer;
 import org.moshe.arad.kafka.consumers.events.NewUserCreatedEventAckConsumer;
 import org.moshe.arad.kafka.events.BackgammonEvent;
 import org.moshe.arad.kafka.events.ExistingUserJoinedLobbyEvent;
@@ -41,6 +43,7 @@ import org.moshe.arad.kafka.events.NewUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.events.UserAddedAsSecondPlayerEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
 import org.moshe.arad.kafka.events.LoggedOutUserLeftLobbyEvent;
+import org.moshe.arad.kafka.events.LoggedOutWatcherLeftLastEvent;
 import org.moshe.arad.kafka.producers.ISimpleProducer;
 import org.moshe.arad.kafka.producers.commands.ISimpleCommandProducer;
 import org.moshe.arad.kafka.producers.commands.SimpleCommandsProducer;
@@ -130,7 +133,18 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	
 	@Autowired
 	private SimpleEventsProducer<LoggedOutOpenByLeftEvent> loggedOutOpenByLeftEventProducer;
+	
+	@Autowired
+	private SimpleEventsProducer<LoggedOutWatcherLeftLastEvent> loggedOutWatcherLeftLastEventProducer;
 
+	private LoggedOutWatcherLeftLastEventConsumer loggedOutWatcherLeftLastEventConsumer;
+	
+	@Autowired
+	private LoggedOutWatcherLeftLastEventConfig loggedOutWatcherLeftLastEventConfig;
+	
+	@Autowired
+	private SimpleEventsProducer<GameRoomClosedEvent> gameRoomClosedLoggedOutWatcherLeftLastEventProducer;
+	
 	private ExecutorService executor = Executors.newFixedThreadPool(6);
 	
 	private Logger logger = LoggerFactory.getLogger(AppInit.class);
@@ -156,6 +170,10 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	private ConsumerToProducerQueue gameRoomClosedLoggedOutOpenByLeftBeforeGameStartedQueue;
 	
 	private ConsumerToProducerQueue loggedOutOpenByLeftEventQueue;
+	
+	private ConsumerToProducerQueue loggedOutWatcherLeftLastQueue;
+	
+	private ConsumerToProducerQueue gameRoomClosedLoggedOutWatcherLeftLastQueue;
 	
 	public static final int NUM_CONSUMERS = 3;
 	
@@ -190,6 +208,8 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		loggedOutOpenByLeftBeforeGameStartedQueue = context.getBean(ConsumerToProducerQueue.class);
 		gameRoomClosedLoggedOutOpenByLeftBeforeGameStartedQueue = context.getBean(ConsumerToProducerQueue.class);
 		loggedOutOpenByLeftEventQueue = context.getBean(ConsumerToProducerQueue.class);
+		loggedOutWatcherLeftLastQueue = context.getBean(ConsumerToProducerQueue.class);
+		gameRoomClosedLoggedOutWatcherLeftLastQueue = context.getBean(ConsumerToProducerQueue.class);
 		
 		for(int i=0; i<NUM_CONSUMERS; i++){
 			newUserCreatedEventAckConsumer = context.getBean(NewUserCreatedEventAckConsumer.class);
@@ -210,6 +230,8 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 			queueMap.put(LoggedOutUserLeftLobbyEvent.class, userLeftLobbyQueue); 
 			queueMap.put(LoggedOutOpenByLeftBeforeGameStartedEvent.class, loggedOutOpenByLeftBeforeGameStartedQueue);
 			queueMap.put(LoggedOutOpenByLeftEvent.class, loggedOutOpenByLeftEventQueue);
+			queueMap.put(LoggedOutWatcherLeftLastEvent.class, loggedOutWatcherLeftLastQueue);
+			
 			loggedOutEventConsumer.setConsumerToProducer(queueMap);
 			
 			initSingleConsumer(loggedOutEventConsumer, KafkaUtils.LOGGED_OUT_EVENT_TOPIC, loggedOutEventConfig);
@@ -217,11 +239,15 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 			loggedOutOpenByLeftBeforeGameStartedEventConsumer = context.getBean(LoggedOutOpenByLeftBeforeGameStartedEventConsumer.class);
 			initSingleConsumer(loggedOutOpenByLeftBeforeGameStartedEventConsumer, KafkaUtils.LOGGED_OUT_OPENBY_LEFT_BEFORE_GAME_STARTED_EVENT_TOPIC, loggedOutOpenByLeftBeforeGameStartedEventConfig, gameRoomClosedLoggedOutOpenByLeftBeforeGameStartedQueue);
 			
+			loggedOutWatcherLeftLastEventConsumer = context.getBean(LoggedOutWatcherLeftLastEventConsumer.class);
+			initSingleConsumer(loggedOutWatcherLeftLastEventConsumer, KafkaUtils.LOGGED_OUT_WATCHER_LEFT_LAST_EVENT_TOPIC, loggedOutWatcherLeftLastEventConfig, gameRoomClosedLoggedOutWatcherLeftLastQueue);
+			
 			executeProducersAndConsumers(Arrays.asList(newUserCreatedEventAckConsumer, 
 					loggedInEventAckConsumer,
 					fromMongoWithoutSavingEventsConsumer,
 					loggedOutEventConsumer,
-					loggedOutOpenByLeftBeforeGameStartedEventConsumer));
+					loggedOutOpenByLeftBeforeGameStartedEventConsumer,
+					loggedOutWatcherLeftLastEventConsumer));
 		}
 	}
 
@@ -256,6 +282,10 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		
 		initSingleProducer(loggedOutOpenByLeftEventProducer, KafkaUtils.LOGGED_OUT_OPENBY_LEFT_EVENT_TOPIC, loggedOutOpenByLeftEventQueue);
 		
+		initSingleProducer(loggedOutWatcherLeftLastEventProducer, KafkaUtils.LOGGED_OUT_WATCHER_LEFT_LAST_EVENT_TOPIC, loggedOutWatcherLeftLastQueue);
+		
+		initSingleProducer(gameRoomClosedLoggedOutWatcherLeftLastEventProducer, KafkaUtils.GAME_ROOM_CLOSED_LOGGED_OUT_WATCHER_LEFT_LAST_EVENT_TOPIC, gameRoomClosedLoggedOutWatcherLeftLastQueue);
+		
 		executeProducersAndConsumers(Arrays.asList(newUserJoinedLobbyEventsProducer, 
 				existingUserJoinedLobbyEventsProducer,
 				newGameRoomOpenedEventProducer,
@@ -265,7 +295,9 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 				loggedOutUserLeftLobbyEventProducer,
 				loggedOutOpenByLeftBeforeGameStartedEventProducer,
 				gameRoomClosedLoggedOutOpenByLeftBeforeGameStartedEventProducer,
-				loggedOutOpenByLeftEventProducer));		
+				loggedOutOpenByLeftEventProducer,
+				loggedOutWatcherLeftLastEventProducer,
+				gameRoomClosedLoggedOutWatcherLeftLastEventProducer));		
 	}
 
 	@Override

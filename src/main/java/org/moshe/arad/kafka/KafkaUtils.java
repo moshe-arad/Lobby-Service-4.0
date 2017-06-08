@@ -2,7 +2,7 @@ package org.moshe.arad.kafka;
 
 public class KafkaUtils {
 
-	public static final String SERVERS = "192.168.1.6:9092,192.168.1.6:9093,192.168.1.6:9094";
+	public static final String SERVERS = "localhost:9092,localhost:9093,localhost:9094";
 	public static final String CREATE_NEW_USER_COMMAND_GROUP = "CreateNewUserCommandGroup";
 	public static final String STRING_DESERIALIZER = "org.apache.kafka.common.serialization.StringDeserializer";
 	public static final String STRING_SERIALIZER = "org.apache.kafka.common.serialization.StringSerializer";
@@ -48,4 +48,7 @@ public class KafkaUtils {
 	public static final String LOGGED_OUT_OPENBY_LEFT_BEFORE_GAME_STARTED_EVENT_GROUP = "LoggedOutOpenByLeftBeforeGameStartedEventGroup3";
 	public static final String GAME_ROOM_CLOSED_LOGGED_OUT_OPENBY_LEFT_BEFORE_GAME_STARTED_EVENT_TOPIC = "Game-Room-Closed-Logged-Out-Openby-Left-Before-Game-Started-Event";
 	public static final String LOGGED_OUT_OPENBY_LEFT_EVENT_TOPIC = "Logged-Out-Openby-Left-Event";
+	public static final String LOGGED_OUT_WATCHER_LEFT_LAST_EVENT_TOPIC = "Logged-Out-Watcher-Left-Last-Event";
+	public static final String LOGGED_OUT_WATCHER_LEFT_LAST_EVENT_GROUP = "LoggedOutWatcherLeftLastEventGroup1";
+	public static final String GAME_ROOM_CLOSED_LOGGED_OUT_WATCHER_LEFT_LAST_EVENT_TOPIC = "Game-Room-Closed-Logged-Out-Watcher-Left-Last-Event";
 }
