@@ -51,4 +51,5 @@ public class KafkaUtils {
 	public static final String LOGGED_OUT_WATCHER_LEFT_LAST_EVENT_TOPIC = "Logged-Out-Watcher-Left-Last-Event";
 	public static final String LOGGED_OUT_WATCHER_LEFT_LAST_EVENT_GROUP = "LoggedOutWatcherLeftLastEventGroup1";
 	public static final String GAME_ROOM_CLOSED_LOGGED_OUT_WATCHER_LEFT_LAST_EVENT_TOPIC = "Game-Room-Closed-Logged-Out-Watcher-Left-Last-Event";
+	public static final String LOGGED_OUT_WATCHER_LEFT_EVENT_TOPIC = "Logged-Out-Watcher-Left-Event";
 }
