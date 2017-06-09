@@ -20,6 +20,7 @@ import org.moshe.arad.kafka.KafkaUtils;
 import org.moshe.arad.kafka.events.BackgammonEvent;
 import org.moshe.arad.kafka.events.GameRoomClosedEvent;
 import org.moshe.arad.kafka.events.LoggedOutOpenByLeftEvent;
+import org.moshe.arad.kafka.events.LoggedOutOpenByLeftFirstEvent;
 import org.moshe.arad.kafka.events.LoggedOutWatcherLeftEvent;
 import org.moshe.arad.kafka.events.LoggedOutWatcherLeftLastEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
@@ -295,6 +296,21 @@ public class SnapshotAPI implements ApplicationContextAware {
 					e.printStackTrace();
 				}				
 			}
+			else if(eventToFold.getClazz().equals("LoggedOutOpenByLeftFirstEvent")){
+				LoggedOutOpenByLeftFirstEvent loggedOutOpenByLeftFirstEvent = (LoggedOutOpenByLeftFirstEvent)eventToFold;
+				
+				currentSnapshot.getUsersOpenedBy().remove(loggedOutOpenByLeftFirstEvent.getOpenBy());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(loggedOutOpenByLeftFirstEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setOpenBy("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}			
 			
 			logger.info("Event to folded successfuly = " + eventToFold);
 		}
