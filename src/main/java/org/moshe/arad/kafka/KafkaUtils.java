@@ -54,4 +54,5 @@ public class KafkaUtils {
 	public static final String LOGGED_OUT_WATCHER_LEFT_EVENT_TOPIC = "Logged-Out-Watcher-Left-Event";
 	public static final String LOGGED_OUT_OPENBY_LEFT_FIRST_EVENT_TOPIC = "Logged-Out-Openby-Left-First-Event";
 	public static final String LOGGED_OUT_SECOND_LEFT_FIRST_EVENT_TOPIC = "Logged-Out-Second-Left-First-Event";
+	public static final String LOGGED_OUT_SECOND_LEFT_EVENT_TOPIC = "Logged-Out-Second-Left-Event";
 }
