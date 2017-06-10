@@ -57,7 +57,18 @@ public class LobbyRepository {
 				}
 				result.add(gameRoom);
 			}
-			//TODO handle 2nd player (join)
+			else if(snapshot.getUsersSecond().containsKey(username)){
+				String gameRoomName = snapshot.getUsersSecond().get(username).toString();
+				ObjectMapper objectMapper = new ObjectMapper();
+				GameRoom gameRoom = null;
+				try {
+					gameRoom = objectMapper.readValue(snapshot.getRooms().get(gameRoomName).toString(), GameRoom.class);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				result.add(gameRoom);
+			}
+	
 			return result;
 		}
 	}
