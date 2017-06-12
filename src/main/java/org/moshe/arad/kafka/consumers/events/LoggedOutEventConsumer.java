@@ -20,6 +20,7 @@ import org.moshe.arad.kafka.events.LoggedOutOpenByLeftFirstEvent;
 import org.moshe.arad.kafka.events.LoggedOutOpenByLeftLastEvent;
 import org.moshe.arad.kafka.events.LoggedOutSecondLeftEvent;
 import org.moshe.arad.kafka.events.LoggedOutSecondLeftFirstEvent;
+import org.moshe.arad.kafka.events.LoggedOutSecondLeftLastEvent;
 import org.moshe.arad.kafka.events.LoggedOutUserLeftLobbyEvent;
 import org.moshe.arad.kafka.events.LoggedOutWatcherLeftEvent;
 import org.moshe.arad.kafka.events.LoggedOutWatcherLeftLastEvent;
@@ -200,7 +201,22 @@ public class LoggedOutEventConsumer extends SimpleEventsConsumer {
     				loggedOutOpenByLeftLastEvent.setGameRoom(room);
     				
     				consumerToProducer.get(LoggedOutOpenByLeftLastEvent.class).getEventsQueue().put(loggedOutOpenByLeftLastEvent);
-    			}    				
+    			}
+    			else if(isSecondLogout && 
+    					(room.getOpenBy().equals("left") && !room.getSecondPlayer().isEmpty() && !room.getSecondPlayer().equals("left") && room.getWatchers().size() == 0)){
+    				logger.info("User is engaged in a room as second player, openBy player already left and room has no watchers...");
+    				logger.info("User will try to leave this room...");
+    				
+    				LoggedOutSecondLeftLastEvent loggedOutSecondLeftLastEvent = context.getBean(LoggedOutSecondLeftLastEvent.class);
+    				loggedOutSecondLeftLastEvent.setUuid(loggedOutEvent.getUuid());
+    				loggedOutSecondLeftLastEvent.setArrived(new Date());
+    				loggedOutSecondLeftLastEvent.setClazz("LoggedOutSecondLeftLastEvent");
+    				loggedOutSecondLeftLastEvent.setSecond(user.getUserName());
+    				room.setSecondPlayer("left");
+    				loggedOutSecondLeftLastEvent.setGameRoom(room);
+    				
+    				consumerToProducer.get(LoggedOutSecondLeftLastEvent.class).getEventsQueue().put(loggedOutSecondLeftLastEvent);
+    			}
     		}
     	}
 		catch (Exception ex) {
