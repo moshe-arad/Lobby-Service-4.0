@@ -19,6 +19,7 @@ import org.moshe.arad.entities.GameRoom;
 import org.moshe.arad.kafka.KafkaUtils;
 import org.moshe.arad.kafka.events.BackgammonEvent;
 import org.moshe.arad.kafka.events.GameRoomClosedEvent;
+import org.moshe.arad.kafka.events.LoggedOutOpenByLeftBeforeGameStartedEvent;
 import org.moshe.arad.kafka.events.LoggedOutOpenByLeftEvent;
 import org.moshe.arad.kafka.events.LoggedOutOpenByLeftFirstEvent;
 import org.moshe.arad.kafka.events.LoggedOutOpenByLeftLastEvent;
@@ -28,6 +29,7 @@ import org.moshe.arad.kafka.events.LoggedOutSecondLeftLastEvent;
 import org.moshe.arad.kafka.events.LoggedOutWatcherLeftEvent;
 import org.moshe.arad.kafka.events.LoggedOutWatcherLeftLastEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
+import org.moshe.arad.kafka.events.OpenByLeftBeforeGameStartedEvent;
 import org.moshe.arad.kafka.events.UserAddedAsSecondPlayerEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
 import org.moshe.arad.kafka.producers.commands.ISimpleCommandProducer;
@@ -136,7 +138,7 @@ public class SnapshotAPI implements ApplicationContextAware {
 		synchronized (current) {
 			try {				
 				lockers.put(uuid, current);
-				current.wait();
+				current.wait(5000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -239,7 +241,11 @@ public class SnapshotAPI implements ApplicationContextAware {
 				}
 			}
 			else if(eventToFold.getClazz().equals("LoggedOutOpenByLeftBeforeGameStartedEvent")){
-				continue;
+				LoggedOutOpenByLeftBeforeGameStartedEvent loggedOutOpenByLeftBeforeGameStartedEvent = (LoggedOutOpenByLeftBeforeGameStartedEvent)eventToFold;
+				
+				currentSnapshot.getUsersOpenedBy().remove(loggedOutOpenByLeftBeforeGameStartedEvent.getLoggedOutUserName());
+				currentSnapshot.getRooms().remove(loggedOutOpenByLeftBeforeGameStartedEvent.getGameRoom());
+				
 			}
 			else if(eventToFold.getClazz().equals("GameRoomClosedEvent")){
 				GameRoomClosedEvent gameRoomClosedEvent = (GameRoomClosedEvent)eventToFold;
@@ -374,6 +380,12 @@ public class SnapshotAPI implements ApplicationContextAware {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}				
+			}
+			else if(eventToFold.getClazz().equals("OpenByLeftBeforeGameStartedEvent")){
+				OpenByLeftBeforeGameStartedEvent openByLeftBeforeGameStartedEvent = (OpenByLeftBeforeGameStartedEvent)eventToFold;
+				
+				currentSnapshot.getUsersOpenedBy().remove(openByLeftBeforeGameStartedEvent.getLeavingUserName());
+				currentSnapshot.getRooms().remove(openByLeftBeforeGameStartedEvent.getGameRoom().getName());			
 			}
 			
 			logger.info("Event to folded successfuly = " + eventToFold);

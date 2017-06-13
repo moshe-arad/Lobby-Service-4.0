@@ -59,6 +59,17 @@ public class OpenNewGameRoomCommandConsumer extends SimpleCommandsConsumer{
 			consumerToProducerQueue.getEventsQueue().put(newGameRoomOpenedEvent);
 			logger.info("event passed...");
 		}
+		else{
+			logger.error("****************************");
+			logger.error("****************************");
+			logger.error("****************************");
+			logger.error("Failed to open game room...");
+			logger.error("Failed to open game room...");
+			logger.error("Failed to open game room...");
+			logger.error("****************************");
+			logger.error("****************************");
+			logger.error("****************************");
+		}
 	}
 	
 	@Override

@@ -20,6 +20,7 @@ import org.moshe.arad.kafka.events.LoggedOutSecondLeftLastEvent;
 import org.moshe.arad.kafka.events.LoggedOutWatcherLeftEvent;
 import org.moshe.arad.kafka.events.LoggedOutWatcherLeftLastEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
+import org.moshe.arad.kafka.events.OpenByLeftBeforeGameStartedEvent;
 import org.moshe.arad.kafka.events.UserAddedAsSecondPlayerEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
 import org.moshe.arad.local.snapshot.SnapshotAPI;
@@ -144,7 +145,12 @@ public class FromMongoWithoutSavingEventsConsumer extends SimpleEventsConsumer {
 
 				eventsBasketFromMongo.addEventToCollectedEvents(uuid, backgammonEvent);
 			}
+			else if(clazz.equals("OpenByLeftBeforeGameStartedEvent")){
+				OpenByLeftBeforeGameStartedEvent openByLeftBeforeGameStartedEvent = objectMapper.readValue(record.value(), OpenByLeftBeforeGameStartedEvent.class);
+				backgammonEvent = openByLeftBeforeGameStartedEvent;
 
+				eventsBasketFromMongo.addEventToCollectedEvents(uuid, backgammonEvent);
+			}
 			
 			if(eventsBasketFromMongo.isReadyHandleEventsFromMongo(uuid)){
 				logger.info("Updating SnapshotAPI with collected events data from mongo events store...");

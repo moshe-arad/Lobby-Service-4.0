@@ -217,7 +217,9 @@ public class LoggedOutEventConsumer extends SimpleEventsConsumer {
     				
     				consumerToProducer.get(LoggedOutSecondLeftLastEvent.class).getEventsQueue().put(loggedOutSecondLeftLastEvent);
     			}
+    			else throw new RuntimeException("Logged out user, failed to calculate engaged rooms...");
     		}
+    		else throw new RuntimeException("Logged out user, failed to calculate engaged rooms...");
     	}
 		catch (Exception ex) {
 			logger.error("Error occured Logged Out Event Consumer...");
