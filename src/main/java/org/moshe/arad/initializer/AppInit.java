@@ -54,6 +54,7 @@ import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEventAck;
 import org.moshe.arad.kafka.events.NewUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.events.OpenByLeftBeforeGameStartedEvent;
+import org.moshe.arad.kafka.events.OpenByLeftEvent;
 import org.moshe.arad.kafka.events.UserAddedAsSecondPlayerEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
 import org.moshe.arad.kafka.events.LoggedOutUserLeftLobbyEvent;
@@ -210,6 +211,9 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	@Autowired
 	private SimpleEventsProducer<GameRoomClosedEvent> gameRoomClosedOpenByLeftBeforeGameStartedEventProducer;
 	
+	@Autowired
+	private SimpleEventsProducer<OpenByLeftEvent> openByLeftEventProducer;
+	
 	private ExecutorService executor = Executors.newFixedThreadPool(6);
 	
 	private Logger logger = LoggerFactory.getLogger(AppInit.class);
@@ -260,6 +264,8 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	
 	private ConsumerToProducerQueue gameRoomClosedOpenByLeftBeforeGameStartedQueue;
 	
+	private ConsumerToProducerQueue openByLeftQueue;
+	
 	public static final int NUM_CONSUMERS = 3;
 	
 	@Override
@@ -269,6 +275,7 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		addWatcherQueue = context.getBean(ConsumerToProducerQueue.class);
 		addSecondPlayerQueue = context.getBean(ConsumerToProducerQueue.class);
 		openByLeftBeforeGameStartedQueue = context.getBean(ConsumerToProducerQueue.class);
+		openByLeftQueue = context.getBean(ConsumerToProducerQueue.class);
 		
 		for(int i=0; i<NUM_CONSUMERS; i++){
 			openNewGameRoomCommandConsumer = context.getBean(OpenNewGameRoomCommandConsumer.class);
@@ -282,7 +289,8 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 			
 			leaveGameRoomCommandConsumer = context.getBean(LeaveGameRoomCommandConsumer.class);
 			HashMap<Class<? extends BackgammonEvent>, ConsumerToProducerQueue> queueMap = new HashMap<>(10000);
-			queueMap.put(LoggedOutOpenByLeftBeforeGameStartedEvent.class, openByLeftBeforeGameStartedQueue); 
+			queueMap.put(LoggedOutOpenByLeftBeforeGameStartedEvent.class, openByLeftBeforeGameStartedQueue);
+			queueMap.put(OpenByLeftEvent.class, openByLeftQueue);
 			leaveGameRoomCommandConsumer.setConsumerToProducer(queueMap);
 			
 			initSingleConsumer(leaveGameRoomCommandConsumer, KafkaUtils.LEAVE_GAME_ROOM_COMMAND_TOPIC, leaveGameRoomCommandConfig);
@@ -426,6 +434,8 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		
 		initSingleProducer(gameRoomClosedOpenByLeftBeforeGameStartedEventProducer, KafkaUtils.GAME_ROOM_CLOSED_OPENBY_LEFT_BEFORE_GAME_STARTED_EVENT_TOPIC, gameRoomClosedOpenByLeftBeforeGameStartedQueue);
 		
+		initSingleProducer(openByLeftEventProducer, KafkaUtils.OPENBY_LEFT_EVENT_TOPIC, openByLeftQueue);
+		
 		executeProducersAndConsumers(Arrays.asList(newUserJoinedLobbyEventsProducer, 
 				existingUserJoinedLobbyEventsProducer,
 				newGameRoomOpenedEventProducer,
@@ -447,7 +457,8 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 				loggedOutSecondLeftLastEventProducer,
 				gameRoomClosedLoggedOutSecondLeftLastEventProducer,
 				openByLeftBeforeGameStartedEventProducer,
-				gameRoomClosedOpenByLeftBeforeGameStartedEventProducer));		
+				gameRoomClosedOpenByLeftBeforeGameStartedEventProducer,
+				openByLeftEventProducer));		
 	}
 
 	@Override

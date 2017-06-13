@@ -30,6 +30,7 @@ import org.moshe.arad.kafka.events.LoggedOutWatcherLeftEvent;
 import org.moshe.arad.kafka.events.LoggedOutWatcherLeftLastEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.events.OpenByLeftBeforeGameStartedEvent;
+import org.moshe.arad.kafka.events.OpenByLeftEvent;
 import org.moshe.arad.kafka.events.UserAddedAsSecondPlayerEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
 import org.moshe.arad.kafka.producers.commands.ISimpleCommandProducer;
@@ -386,6 +387,21 @@ public class SnapshotAPI implements ApplicationContextAware {
 				
 				currentSnapshot.getUsersOpenedBy().remove(openByLeftBeforeGameStartedEvent.getLeavingUserName());
 				currentSnapshot.getRooms().remove(openByLeftBeforeGameStartedEvent.getGameRoom().getName());			
+			}
+			else if(eventToFold.getClazz().equals("OpenByLeftEvent")){
+				OpenByLeftEvent openByLeftEvent = (OpenByLeftEvent)eventToFold;
+				
+				currentSnapshot.getUsersOpenedBy().remove(openByLeftEvent.getOpenBy());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(openByLeftEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setOpenBy("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
 			}
 			
 			logger.info("Event to folded successfuly = " + eventToFold);
