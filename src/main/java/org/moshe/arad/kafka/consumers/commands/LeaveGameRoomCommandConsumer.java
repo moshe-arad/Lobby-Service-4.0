@@ -26,6 +26,7 @@ import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEventAck;
 import org.moshe.arad.kafka.events.OpenByLeftBeforeGameStartedEvent;
 import org.moshe.arad.kafka.events.OpenByLeftEvent;
+import org.moshe.arad.kafka.events.WatcherLeftEvent;
 import org.moshe.arad.kafka.events.WatcherLeftLastEvent;
 import org.moshe.arad.repository.LobbyRepository;
 import org.slf4j.Logger;
@@ -110,25 +111,25 @@ public class LeaveGameRoomCommandConsumer extends SimpleCommandsConsumer{
 				
 				consumerToProducer.get(WatcherLeftLastEvent.class).getEventsQueue().put(watcherLeftLastEvent);
 			}
-//			else if(isWatcherLeaving &&
-//					((!room.getOpenBy().isEmpty() && !room.getOpenBy().equals("left") && !room.getSecondPlayer().isEmpty() && !room.getSecondPlayer().equals("left") && room.getWatchers().size() > 0) ||
-//					(!room.getOpenBy().isEmpty() && !room.getOpenBy().equals("left") && room.getSecondPlayer().isEmpty() && room.getWatchers().size() > 0) ||
-//					(!room.getOpenBy().isEmpty() && !room.getOpenBy().equals("left") && room.getSecondPlayer().equals("left") && room.getWatchers().size() > 0) ||
-//					(room.getOpenBy().equals("left") && room.getSecondPlayer().isEmpty() && room.getWatchers().size() > 1) ||
-//					(room.getOpenBy().equals("left") && room.getSecondPlayer().equals("left") && room.getWatchers().size() > 1))){
-//				logger.info("User is engaged in a room as a watcher...");
-//				logger.info("User will try to leave this room...");
-//				
-//				LoggedOutWatcherLeftEvent loggedOutWatcherLeftEvent = context.getBean(LoggedOutWatcherLeftEvent.class);
-//				loggedOutWatcherLeftEvent.setUuid(loggedOutEvent.getUuid());
-//				loggedOutWatcherLeftEvent.setArrived(new Date());
-//				loggedOutWatcherLeftEvent.setClazz("LoggedOutWatcherLeftEvent");
-//				loggedOutWatcherLeftEvent.setWatcher(user.getUserName());
-//				room.getWatchers().remove(user.getUserName());
-//				loggedOutWatcherLeftEvent.setGameRoom(room);
-//				
-//				consumerToProducer.get(LoggedOutWatcherLeftEvent.class).getEventsQueue().put(loggedOutWatcherLeftEvent);
-//			}
+			else if(isWatcherLeaving &&
+					((!room.getOpenBy().isEmpty() && !room.getOpenBy().equals("left") && !room.getSecondPlayer().isEmpty() && !room.getSecondPlayer().equals("left") && room.getWatchers().size() > 0) ||
+					(!room.getOpenBy().isEmpty() && !room.getOpenBy().equals("left") && room.getSecondPlayer().isEmpty() && room.getWatchers().size() > 0) ||
+					(!room.getOpenBy().isEmpty() && !room.getOpenBy().equals("left") && room.getSecondPlayer().equals("left") && room.getWatchers().size() > 0) ||
+					(room.getOpenBy().equals("left") && room.getSecondPlayer().isEmpty() && room.getWatchers().size() > 1) ||
+					(room.getOpenBy().equals("left") && room.getSecondPlayer().equals("left") && room.getWatchers().size() > 1))){
+				logger.info("User is engaged in a room as a watcher...");
+				logger.info("User will try to leave this room...");
+				
+				WatcherLeftEvent watcherLeftEvent = context.getBean(WatcherLeftEvent.class);
+				watcherLeftEvent.setUuid(leaveGameRoomCommand.getUuid());
+				watcherLeftEvent.setArrived(new Date());
+				watcherLeftEvent.setClazz("WatcherLeftEvent");
+				watcherLeftEvent.setWatcher(userName);
+				room.getWatchers().remove(userName);
+				watcherLeftEvent.setGameRoom(room);
+				
+				consumerToProducer.get(WatcherLeftEvent.class).getEventsQueue().put(watcherLeftEvent);
+			}
 //			else if(isOpenByLeaving && 
 //					(!room.getOpenBy().isEmpty() && !room.getOpenBy().equals("left") && !room.getSecondPlayer().isEmpty() && !room.getSecondPlayer().equals("left"))){
 //				logger.info("User is engaged in a room as a openBy, and game as already began...");
