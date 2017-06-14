@@ -22,6 +22,7 @@ import org.moshe.arad.kafka.events.LoggedOutWatcherLeftLastEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
 import org.moshe.arad.kafka.events.OpenByLeftBeforeGameStartedEvent;
 import org.moshe.arad.kafka.events.OpenByLeftEvent;
+import org.moshe.arad.kafka.events.OpenByLeftFirstEvent;
 import org.moshe.arad.kafka.events.UserAddedAsSecondPlayerEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
 import org.moshe.arad.kafka.events.WatcherLeftEvent;
@@ -169,6 +170,12 @@ public class FromMongoWithoutSavingEventsConsumer extends SimpleEventsConsumer {
 			else if(clazz.equals("WatcherLeftEvent")){
 				WatcherLeftEvent watcherLeftEvent = objectMapper.readValue(record.value(), WatcherLeftEvent.class);
 				backgammonEvent = watcherLeftEvent;
+
+				eventsBasketFromMongo.addEventToCollectedEvents(uuid, backgammonEvent);
+			}
+			else if(clazz.equals("OpenByLeftFirstEvent")){
+				OpenByLeftFirstEvent openByLeftFirstEvent = objectMapper.readValue(record.value(), OpenByLeftFirstEvent.class);
+				backgammonEvent = openByLeftFirstEvent;
 
 				eventsBasketFromMongo.addEventToCollectedEvents(uuid, backgammonEvent);
 			}
