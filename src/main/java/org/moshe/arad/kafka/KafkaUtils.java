@@ -74,4 +74,7 @@ public class KafkaUtils {
 	public static final String OPENBY_LEFT_FIRST_EVENT_TOPIC = "Openby-Left-First-Event";
 	public static final String SECOND_LEFT_FIRST_EVENT_TOPIC = "Second-Left-First-Event";
 	public static final String SECOND_LEFT_EVENT_TOPIC = "Second-Left-Event";
+	public static final String OPENBY_LEFT_LAST_EVENT_TOPIC = "Openby-Left-Last-Event";
+	public static final String OPENBY_LEFT_LAST_EVENT_GROUP = "OpenbyLeftLastEventGroup3";
+	public static final String GAME_ROOM_CLOSED_OPENBY_LEFT_LAST_EVENT_TOPIC = "Game-Room-Closed-Openby-Left-Last-Event";
 }
