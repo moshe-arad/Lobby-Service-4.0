@@ -30,6 +30,7 @@ import org.moshe.arad.kafka.events.OpenByLeftFirstEvent;
 import org.moshe.arad.kafka.events.OpenByLeftLastEvent;
 import org.moshe.arad.kafka.events.SecondLeftEvent;
 import org.moshe.arad.kafka.events.SecondLeftFirstEvent;
+import org.moshe.arad.kafka.events.SecondLeftLastEvent;
 import org.moshe.arad.kafka.events.WatcherLeftEvent;
 import org.moshe.arad.kafka.events.WatcherLeftLastEvent;
 import org.moshe.arad.repository.LobbyRepository;
@@ -194,21 +195,21 @@ public class LeaveGameRoomCommandConsumer extends SimpleCommandsConsumer{
 				
 				consumerToProducer.get(OpenByLeftLastEvent.class).getEventsQueue().put(openByLeftLastEvent);
 			}
-//			else if(isSecondLeaving && 
-//					(room.getOpenBy().equals("left") && !room.getSecondPlayer().isEmpty() && !room.getSecondPlayer().equals("left") && room.getWatchers().size() == 0)){
-//				logger.info("User is engaged in a room as second player, openBy player already left and room has no watchers...");
-//				logger.info("User will try to leave this room...");
-//				
-//				LoggedOutSecondLeftLastEvent loggedOutSecondLeftLastEvent = context.getBean(LoggedOutSecondLeftLastEvent.class);
-//				loggedOutSecondLeftLastEvent.setUuid(loggedOutEvent.getUuid());
-//				loggedOutSecondLeftLastEvent.setArrived(new Date());
-//				loggedOutSecondLeftLastEvent.setClazz("LoggedOutSecondLeftLastEvent");
-//				loggedOutSecondLeftLastEvent.setSecond(user.getUserName());
-//				room.setSecondPlayer("left");
-//				loggedOutSecondLeftLastEvent.setGameRoom(room);
-//				
-//				consumerToProducer.get(LoggedOutSecondLeftLastEvent.class).getEventsQueue().put(loggedOutSecondLeftLastEvent);
-//			}
+			else if(isSecondLeaving && 
+					(room.getOpenBy().equals("left") && !room.getSecondPlayer().isEmpty() && !room.getSecondPlayer().equals("left") && room.getWatchers().size() == 0)){
+				logger.info("User is engaged in a room as second player, openBy player already left and room has no watchers...");
+				logger.info("User will try to leave this room...");
+				
+				SecondLeftLastEvent secondLeftLastEvent = context.getBean(SecondLeftLastEvent.class);
+				secondLeftLastEvent.setUuid(leaveGameRoomCommand.getUuid());
+				secondLeftLastEvent.setArrived(new Date());
+				secondLeftLastEvent.setClazz("SecondLeftLastEvent");
+				secondLeftLastEvent.setSecond(userName);
+				room.setSecondPlayer("left");
+				secondLeftLastEvent.setGameRoom(room);
+				
+				consumerToProducer.get(SecondLeftLastEvent.class).getEventsQueue().put(secondLeftLastEvent);
+			}
 			else throw new RuntimeException("Leaving user, failed to calculate engaged rooms...");
 		}
 		else throw new RuntimeException("Leaving user, failed to calculate engaged rooms...");

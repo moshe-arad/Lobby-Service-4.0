@@ -35,6 +35,7 @@ import org.moshe.arad.kafka.events.OpenByLeftFirstEvent;
 import org.moshe.arad.kafka.events.OpenByLeftLastEvent;
 import org.moshe.arad.kafka.events.SecondLeftEvent;
 import org.moshe.arad.kafka.events.SecondLeftFirstEvent;
+import org.moshe.arad.kafka.events.SecondLeftLastEvent;
 import org.moshe.arad.kafka.events.UserAddedAsSecondPlayerEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
 import org.moshe.arad.kafka.events.WatcherLeftEvent;
@@ -475,6 +476,21 @@ public class SnapshotAPI implements ApplicationContextAware {
 				try {
 					room = objectMapper.readValue(currentSnapshot.getRooms().get(openByLeftLastEvent.getGameRoom().getName()).toString(), GameRoom.class);
 					room.setOpenBy("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+			else if(eventToFold.getClazz().equals("SecondLeftLastEvent")){
+				SecondLeftLastEvent secondLeftLastEvent = (SecondLeftLastEvent)eventToFold;
+				
+				currentSnapshot.getUsersSecond().remove(secondLeftLastEvent.getSecond());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(secondLeftLastEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setSecondPlayer("left");
 					String roomJson = objectMapper.writeValueAsString(room);
 					currentSnapshot.getRooms().put(room.getName(), roomJson);
 				} catch (IOException e) {
