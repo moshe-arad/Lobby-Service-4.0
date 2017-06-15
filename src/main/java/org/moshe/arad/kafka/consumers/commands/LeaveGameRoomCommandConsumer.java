@@ -27,6 +27,7 @@ import org.moshe.arad.kafka.events.NewGameRoomOpenedEventAck;
 import org.moshe.arad.kafka.events.OpenByLeftBeforeGameStartedEvent;
 import org.moshe.arad.kafka.events.OpenByLeftEvent;
 import org.moshe.arad.kafka.events.OpenByLeftFirstEvent;
+import org.moshe.arad.kafka.events.SecondLeftFirstEvent;
 import org.moshe.arad.kafka.events.WatcherLeftEvent;
 import org.moshe.arad.kafka.events.WatcherLeftLastEvent;
 import org.moshe.arad.repository.LobbyRepository;
@@ -146,21 +147,21 @@ public class LeaveGameRoomCommandConsumer extends SimpleCommandsConsumer{
 				
 				consumerToProducer.get(OpenByLeftFirstEvent.class).getEventsQueue().put(openByLeftFirstEvent);
 			}
-//			else if(isSecondLeaving && 
-//					(!room.getOpenBy().isEmpty() && !room.getOpenBy().equals("left") && !room.getSecondPlayer().isEmpty() && !room.getSecondPlayer().equals("left"))){
-//				logger.info("User is engaged in a room as a second player, and game as already began...");
-//				logger.info("User will try to leave this room...");
-//				
-//				LoggedOutSecondLeftFirstEvent loggedOutSecondLeftFirstEvent = context.getBean(LoggedOutSecondLeftFirstEvent.class);
-//				loggedOutSecondLeftFirstEvent.setUuid(loggedOutEvent.getUuid());
-//				loggedOutSecondLeftFirstEvent.setArrived(new Date());
-//				loggedOutSecondLeftFirstEvent.setClazz("LoggedOutSecondLeftFirstEvent");
-//				loggedOutSecondLeftFirstEvent.setSecond(user.getUserName());
-//				room.setSecondPlayer("left");
-//				loggedOutSecondLeftFirstEvent.setGameRoom(room);
-//				
-//				consumerToProducer.get(LoggedOutSecondLeftFirstEvent.class).getEventsQueue().put(loggedOutSecondLeftFirstEvent);
-//			}
+			else if(isSecondLeaving && 
+					(!room.getOpenBy().isEmpty() && !room.getOpenBy().equals("left") && !room.getSecondPlayer().isEmpty() && !room.getSecondPlayer().equals("left"))){
+				logger.info("User is engaged in a room as a second player, and game as already began...");
+				logger.info("User will try to leave this room...");
+				
+				SecondLeftFirstEvent secondLeftFirstEvent = context.getBean(SecondLeftFirstEvent.class);
+				secondLeftFirstEvent.setUuid(leaveGameRoomCommand.getUuid());
+				secondLeftFirstEvent.setArrived(new Date());
+				secondLeftFirstEvent.setClazz("SecondLeftFirstEvent");
+				secondLeftFirstEvent.setSecond(userName);
+				room.setSecondPlayer("left");
+				secondLeftFirstEvent.setGameRoom(room);
+				
+				consumerToProducer.get(SecondLeftFirstEvent.class).getEventsQueue().put(secondLeftFirstEvent);
+			}
 //			else if(isSecondLeaving && 
 //					(room.getOpenBy().equals("left") && !room.getSecondPlayer().isEmpty()  && !room.getSecondPlayer().equals("left") && room.getWatchers().size() > 0)){
 //				logger.info("User is engaged in a room as a second player, first player already left and room has watchers...");
