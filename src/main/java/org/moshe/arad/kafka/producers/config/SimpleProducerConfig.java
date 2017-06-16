@@ -16,9 +16,9 @@ public class SimpleProducerConfig {
 		properties.put("value.serializer", KafkaUtils.STRING_SERIALIZER);
 		properties.put("acks", "all");
 		properties.put("compression.type", "snappy");
-		properties.put("batch.size", "163840");
-		properties.put("linger.ms", "5");
-		properties.put("max.request.size", "163840");
+//		properties.put("batch.size", "163840");
+//		properties.put("linger.ms", "5");
+//		properties.put("max.request.size", "163840");
 		properties.put("block.on.buffer.full", "true");
 		properties.put("retries", "0");
 	}

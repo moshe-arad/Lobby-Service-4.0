@@ -18,9 +18,28 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.moshe.arad.entities.GameRoom;
 import org.moshe.arad.kafka.KafkaUtils;
 import org.moshe.arad.kafka.events.BackgammonEvent;
+import org.moshe.arad.kafka.events.GameRoomClosedEvent;
+import org.moshe.arad.kafka.events.LoggedOutOpenByLeftBeforeGameStartedEvent;
+import org.moshe.arad.kafka.events.LoggedOutOpenByLeftEvent;
+import org.moshe.arad.kafka.events.LoggedOutOpenByLeftFirstEvent;
+import org.moshe.arad.kafka.events.LoggedOutOpenByLeftLastEvent;
+import org.moshe.arad.kafka.events.LoggedOutSecondLeftEvent;
+import org.moshe.arad.kafka.events.LoggedOutSecondLeftFirstEvent;
+import org.moshe.arad.kafka.events.LoggedOutSecondLeftLastEvent;
+import org.moshe.arad.kafka.events.LoggedOutWatcherLeftEvent;
+import org.moshe.arad.kafka.events.LoggedOutWatcherLeftLastEvent;
 import org.moshe.arad.kafka.events.NewGameRoomOpenedEvent;
+import org.moshe.arad.kafka.events.OpenByLeftBeforeGameStartedEvent;
+import org.moshe.arad.kafka.events.OpenByLeftEvent;
+import org.moshe.arad.kafka.events.OpenByLeftFirstEvent;
+import org.moshe.arad.kafka.events.OpenByLeftLastEvent;
+import org.moshe.arad.kafka.events.SecondLeftEvent;
+import org.moshe.arad.kafka.events.SecondLeftFirstEvent;
+import org.moshe.arad.kafka.events.SecondLeftLastEvent;
 import org.moshe.arad.kafka.events.UserAddedAsSecondPlayerEvent;
 import org.moshe.arad.kafka.events.UserAddedAsWatcherEvent;
+import org.moshe.arad.kafka.events.WatcherLeftEvent;
+import org.moshe.arad.kafka.events.WatcherLeftLastEvent;
 import org.moshe.arad.kafka.producers.commands.ISimpleCommandProducer;
 import org.moshe.arad.kafka.producers.commands.PullEventsWithoutSavingCommandsProducer;
 import org.slf4j.Logger;
@@ -127,7 +146,7 @@ public class SnapshotAPI implements ApplicationContextAware {
 		synchronized (current) {
 			try {				
 				lockers.put(uuid, current);
-				current.wait();
+				current.wait(5000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -224,9 +243,259 @@ public class SnapshotAPI implements ApplicationContextAware {
 					gameRoom.setSecondPlayer(userAddedAsSecondPlayerEvent.getUsername());
 					String gameRoomJson = objectMapper.writeValueAsString(gameRoom);
 					currentSnapshot.getRooms().put(userAddedAsSecondPlayerEvent.getGameRoom().getName(), gameRoomJson);
+					currentSnapshot.getUsersSecond().put(userAddedAsSecondPlayerEvent.getUsername(), gameRoom.getName());
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+			}
+			else if(eventToFold.getClazz().equals("LoggedOutOpenByLeftBeforeGameStartedEvent")){
+				LoggedOutOpenByLeftBeforeGameStartedEvent loggedOutOpenByLeftBeforeGameStartedEvent = (LoggedOutOpenByLeftBeforeGameStartedEvent)eventToFold;
+				
+				currentSnapshot.getUsersOpenedBy().remove(loggedOutOpenByLeftBeforeGameStartedEvent.getLoggedOutUserName());
+				currentSnapshot.getRooms().remove(loggedOutOpenByLeftBeforeGameStartedEvent.getGameRoom());
+				
+			}
+			else if(eventToFold.getClazz().equals("GameRoomClosedEvent")){
+				GameRoomClosedEvent gameRoomClosedEvent = (GameRoomClosedEvent)eventToFold;
+		
+				if(currentSnapshot.getUsersOpenedBy().containsKey(gameRoomClosedEvent.getLoggedOutUserName())){
+					currentSnapshot.getUsersOpenedBy().remove(gameRoomClosedEvent.getLoggedOutUserName());
+				}
+				else if(currentSnapshot.getUsersWatchers().containsKey(gameRoomClosedEvent.getLoggedOutUserName())){
+					currentSnapshot.getUsersWatchers().remove(gameRoomClosedEvent.getLoggedOutUserName());
+				}
+				else if(currentSnapshot.getUsersSecond().containsKey(gameRoomClosedEvent.getLoggedOutUserName())){
+					currentSnapshot.getUsersSecond().remove(gameRoomClosedEvent.getLoggedOutUserName());
+				}
+				currentSnapshot.getRooms().remove(gameRoomClosedEvent.getGameRoom().getName());
+			}
+			else if(eventToFold.getClazz().equals("LoggedOutOpenByLeftEvent")){
+				LoggedOutOpenByLeftEvent loggedOutOpenByLeftEvent = (LoggedOutOpenByLeftEvent)eventToFold;
+				
+				currentSnapshot.getUsersOpenedBy().remove(loggedOutOpenByLeftEvent.getOpenBy());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(loggedOutOpenByLeftEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setOpenBy("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+			else if(eventToFold.getClazz().equals("LoggedOutWatcherLeftLastEvent")){
+				LoggedOutWatcherLeftLastEvent loggedOutWatcherLeftLastEvent = (LoggedOutWatcherLeftLastEvent)eventToFold;
+				
+				currentSnapshot.getUsersWatchers().remove(loggedOutWatcherLeftLastEvent.getWatcher());
+				currentSnapshot.getRooms().remove(loggedOutWatcherLeftLastEvent.getGameRoom().getName());			
+			}
+			else if(eventToFold.getClazz().equals("LoggedOutWatcherLeftEvent")){
+				LoggedOutWatcherLeftEvent loggedOutWatcherLeftEvent = (LoggedOutWatcherLeftEvent)eventToFold;
+				
+				currentSnapshot.getUsersWatchers().remove(loggedOutWatcherLeftEvent.getWatcher());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(loggedOutWatcherLeftEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.getWatchers().remove(loggedOutWatcherLeftEvent.getWatcher());
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+			else if(eventToFold.getClazz().equals("LoggedOutOpenByLeftFirstEvent")){
+				LoggedOutOpenByLeftFirstEvent loggedOutOpenByLeftFirstEvent = (LoggedOutOpenByLeftFirstEvent)eventToFold;
+				
+				currentSnapshot.getUsersOpenedBy().remove(loggedOutOpenByLeftFirstEvent.getOpenBy());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(loggedOutOpenByLeftFirstEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setOpenBy("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+			else if(eventToFold.getClazz().equals("LoggedOutSecondLeftFirstEvent")){
+				LoggedOutSecondLeftFirstEvent loggedOutSecondLeftFirstEvent = (LoggedOutSecondLeftFirstEvent)eventToFold;
+				
+				currentSnapshot.getUsersSecond().remove(loggedOutSecondLeftFirstEvent.getSecond());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(loggedOutSecondLeftFirstEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setSecondPlayer("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+			else if(eventToFold.getClazz().equals("LoggedOutSecondLeftEvent")){
+				LoggedOutSecondLeftEvent loggedOutSecondLeftEvent = (LoggedOutSecondLeftEvent)eventToFold;
+				
+				currentSnapshot.getUsersSecond().remove(loggedOutSecondLeftEvent.getSecond());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(loggedOutSecondLeftEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setSecondPlayer("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+			else if(eventToFold.getClazz().equals("LoggedOutOpenByLeftLastEvent")){
+				LoggedOutOpenByLeftLastEvent loggedOutOpenByLeftLastEvent = (LoggedOutOpenByLeftLastEvent)eventToFold;
+				
+				currentSnapshot.getUsersOpenedBy().remove(loggedOutOpenByLeftLastEvent.getOpenBy());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(loggedOutOpenByLeftLastEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setOpenBy("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+			else if(eventToFold.getClazz().equals("LoggedOutSecondLeftLastEvent")){
+				LoggedOutSecondLeftLastEvent loggedOutSecondLeftLastEvent = (LoggedOutSecondLeftLastEvent)eventToFold;
+				
+				currentSnapshot.getUsersSecond().remove(loggedOutSecondLeftLastEvent.getSecond());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(loggedOutSecondLeftLastEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setSecondPlayer("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+			else if(eventToFold.getClazz().equals("OpenByLeftBeforeGameStartedEvent")){
+				OpenByLeftBeforeGameStartedEvent openByLeftBeforeGameStartedEvent = (OpenByLeftBeforeGameStartedEvent)eventToFold;
+				
+				currentSnapshot.getUsersOpenedBy().remove(openByLeftBeforeGameStartedEvent.getLeavingUserName());
+				currentSnapshot.getRooms().remove(openByLeftBeforeGameStartedEvent.getGameRoom().getName());			
+			}
+			else if(eventToFold.getClazz().equals("OpenByLeftEvent")){
+				OpenByLeftEvent openByLeftEvent = (OpenByLeftEvent)eventToFold;
+				
+				currentSnapshot.getUsersOpenedBy().remove(openByLeftEvent.getOpenBy());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(openByLeftEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setOpenBy("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+			else if(eventToFold.getClazz().equals("WatcherLeftLastEvent")){
+				WatcherLeftLastEvent watcherLeftLastEvent = (WatcherLeftLastEvent)eventToFold;
+				
+				currentSnapshot.getUsersWatchers().remove(watcherLeftLastEvent.getWatcher());
+				currentSnapshot.getRooms().remove(watcherLeftLastEvent.getGameRoom().getName());				
+			}
+			else if(eventToFold.getClazz().equals("WatcherLeftEvent")){
+				WatcherLeftEvent watcherLeftEvent = (WatcherLeftEvent)eventToFold;
+				
+				currentSnapshot.getUsersWatchers().remove(watcherLeftEvent.getWatcher());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(watcherLeftEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.getWatchers().remove(watcherLeftEvent.getWatcher());
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+			else if(eventToFold.getClazz().equals("OpenByLeftFirstEvent")){
+				OpenByLeftFirstEvent openByLeftFirstEvent = (OpenByLeftFirstEvent)eventToFold;
+				
+				currentSnapshot.getUsersOpenedBy().remove(openByLeftFirstEvent.getOpenBy());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(openByLeftFirstEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setOpenBy("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+			else if(eventToFold.getClazz().equals("SecondLeftFirstEvent")){
+				SecondLeftFirstEvent secondLeftFirstEvent = (SecondLeftFirstEvent)eventToFold;
+				
+				currentSnapshot.getUsersSecond().remove(secondLeftFirstEvent.getSecond());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(secondLeftFirstEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setSecondPlayer("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+			else if(eventToFold.getClazz().equals("SecondLeftEvent")){
+				SecondLeftEvent secondLeftEvent = (SecondLeftEvent)eventToFold;
+				
+				currentSnapshot.getUsersSecond().remove(secondLeftEvent.getSecond());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(secondLeftEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setSecondPlayer("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+			else if(eventToFold.getClazz().equals("OpenByLeftLastEvent")){
+				OpenByLeftLastEvent openByLeftLastEvent = (OpenByLeftLastEvent)eventToFold;
+				
+				currentSnapshot.getUsersOpenedBy().remove(openByLeftLastEvent.getOpenBy());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(openByLeftLastEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setOpenBy("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+			else if(eventToFold.getClazz().equals("SecondLeftLastEvent")){
+				SecondLeftLastEvent secondLeftLastEvent = (SecondLeftLastEvent)eventToFold;
+				
+				currentSnapshot.getUsersSecond().remove(secondLeftLastEvent.getSecond());
+				ObjectMapper objectMapper = new ObjectMapper();				
+				GameRoom room = null;
+				try {
+					room = objectMapper.readValue(currentSnapshot.getRooms().get(secondLeftLastEvent.getGameRoom().getName()).toString(), GameRoom.class);
+					room.setSecondPlayer("left");
+					String roomJson = objectMapper.writeValueAsString(room);
+					currentSnapshot.getRooms().put(room.getName(), roomJson);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
 			}
 			
 			logger.info("Event to folded successfuly = " + eventToFold);

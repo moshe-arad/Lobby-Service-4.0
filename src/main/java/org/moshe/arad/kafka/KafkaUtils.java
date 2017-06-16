@@ -2,7 +2,7 @@ package org.moshe.arad.kafka;
 
 public class KafkaUtils {
 
-	public static final String SERVERS = "192.168.1.6:9092,192.168.1.6:9093,192.168.1.6:9094";
+	public static final String SERVERS = "localhost:9092,localhost:9093,localhost:9094";
 	public static final String CREATE_NEW_USER_COMMAND_GROUP = "CreateNewUserCommandGroup";
 	public static final String STRING_DESERIALIZER = "org.apache.kafka.common.serialization.StringDeserializer";
 	public static final String STRING_SERIALIZER = "org.apache.kafka.common.serialization.StringSerializer";
@@ -44,4 +44,40 @@ public class KafkaUtils {
 	public static final String ADD_USER_AS_SECOND_PLAYER_COMMAND_TOPIC = "Add-User-As-Second-Player-Command";
 	public static final String USER_ADDED_AS_SECOND_PLAYER_EVENT_TOPIC = "User-Added-As-Second-Player-Event";
 	public static final String LOGGED_OUT_USER_LEFT_LOBBY_EVENT_TOPIC = "Logged-Out-User-Left-Lobby-Event";
+	public static final String LOGGED_OUT_OPENBY_LEFT_BEFORE_GAME_STARTED_EVENT_TOPIC = "Logged-Out-Openby-Left-Before-Game-Started-Event";
+	public static final String LOGGED_OUT_OPENBY_LEFT_BEFORE_GAME_STARTED_EVENT_GROUP = "LoggedOutOpenByLeftBeforeGameStartedEventGroup3";
+	public static final String GAME_ROOM_CLOSED_LOGGED_OUT_OPENBY_LEFT_BEFORE_GAME_STARTED_EVENT_TOPIC = "Game-Room-Closed-Logged-Out-Openby-Left-Before-Game-Started-Event";
+	public static final String LOGGED_OUT_OPENBY_LEFT_EVENT_TOPIC = "Logged-Out-Openby-Left-Event";
+	public static final String LOGGED_OUT_WATCHER_LEFT_LAST_EVENT_TOPIC = "Logged-Out-Watcher-Left-Last-Event";
+	public static final String LOGGED_OUT_WATCHER_LEFT_LAST_EVENT_GROUP = "LoggedOutWatcherLeftLastEventGroup1";
+	public static final String GAME_ROOM_CLOSED_LOGGED_OUT_WATCHER_LEFT_LAST_EVENT_TOPIC = "Game-Room-Closed-Logged-Out-Watcher-Left-Last-Event";
+	public static final String LOGGED_OUT_WATCHER_LEFT_EVENT_TOPIC = "Logged-Out-Watcher-Left-Event";
+	public static final String LOGGED_OUT_OPENBY_LEFT_FIRST_EVENT_TOPIC = "Logged-Out-Openby-Left-First-Event";
+	public static final String LOGGED_OUT_SECOND_LEFT_FIRST_EVENT_TOPIC = "Logged-Out-Second-Left-First-Event";
+	public static final String LOGGED_OUT_SECOND_LEFT_EVENT_TOPIC = "Logged-Out-Second-Left-Event";
+	public static final String LOGGED_OUT_OPENBY_LEFT_LAST_EVENT_TOPIC = "Logged-Out-Openby-Left-Last-Event";
+	public static final String LOGGED_OUT_OPENBY_LEFT_LAST_EVENT_GROUP = "LoggedOutOpenbyLeftLastEventGroup3";
+	public static final String GAME_ROOM_CLOSED_LOGGED_OUT_OPENBY_LEFT_LAST_EVENT_TOPIC = "Game-Room-Closed-Logged-Out-Openby-Left-Last-Event";
+	public static final String LOGGED_OUT_SECOND_LEFT_LAST_EVENT_TOPIC = "Logged-Out-Second-Left-Last-Event";
+	public static final String LOGGED_OUT_SECOND_LEFT_LAST_EVENT_GROUP = "LoggedOutSecondLeftLastEventGroup3";
+	public static final String GAME_ROOM_CLOSED_LOGGED_OUT_SECOND_LEFT_LAST_EVENT_TOPIC = "Game-Room-Closed-Logged-Out-Second-Left-Last-Event";
+	public static final String LEAVE_GAME_ROOM_COMMAND_GROUP = "LeaveGameRoomCommandGroup1";
+	public static final String LEAVE_GAME_ROOM_COMMAND_TOPIC = "Leave-Game-Room-Command";
+	public static final String OPENBY_LEFT_BEFORE_GAME_STARTED_EVENT_TOPIC = "Openby-Left-Before-Game-Started-Event";
+	public static final String OPENBY_LEFT_BEFORE_GAME_STARTED_EVENT_GROUP = "OpenbyLeftBeforeGameStartedEventGroup4";
+	public static final String GAME_ROOM_CLOSED_OPENBY_LEFT_BEFORE_GAME_STARTED_EVENT_TOPIC = "Game-Room-Closed-Openby-Left-Before-Game-Started-Event";
+	public static final String OPENBY_LEFT_EVENT_TOPIC = "Openby-Left-Event";
+	public static final String WATCHER_LEFT_LAST_EVENT_TOPIC = "Watcher-Left-Last-Event";
+	public static final String WATCHER_LEFT_LAST_EVENT_GROUP = "WatcherLeftLastEventGroup3";
+	public static final String GAME_ROOM_CLOSED_WATCHER_LEFT_LAST_EVENT_TOPIC = "Game-Room-Closed-Watcher-Left-Last-Event";
+	public static final String WATCHER_LEFT_EVENT_TOPIC = "Watcher-Left-Event";
+	public static final String OPENBY_LEFT_FIRST_EVENT_TOPIC = "Openby-Left-First-Event";
+	public static final String SECOND_LEFT_FIRST_EVENT_TOPIC = "Second-Left-First-Event";
+	public static final String SECOND_LEFT_EVENT_TOPIC = "Second-Left-Event";
+	public static final String OPENBY_LEFT_LAST_EVENT_TOPIC = "Openby-Left-Last-Event";
+	public static final String OPENBY_LEFT_LAST_EVENT_GROUP = "OpenbyLeftLastEventGroup3";
+	public static final String GAME_ROOM_CLOSED_OPENBY_LEFT_LAST_EVENT_TOPIC = "Game-Room-Closed-Openby-Left-Last-Event";
+	public static final String SECOND_LEFT_LAST_EVENT_TOPIC = "Second-Left-Last-Event";
+	public static final String SECOND_LEFT_LAST_EVENT_GROUP = "SecondLeftLastEventGroup3";
+	public static final String GAME_ROOM_CLOSED_SECOND_LEFT_LAST_EVENT_TOPIC = "Game-Room-Closed-Second-Left-Last-Event";
 }
