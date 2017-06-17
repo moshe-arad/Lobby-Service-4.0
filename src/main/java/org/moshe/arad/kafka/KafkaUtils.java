@@ -80,4 +80,6 @@ public class KafkaUtils {
 	public static final String SECOND_LEFT_LAST_EVENT_TOPIC = "Second-Left-Last-Event";
 	public static final String SECOND_LEFT_LAST_EVENT_GROUP = "SecondLeftLastEventGroup3";
 	public static final String GAME_ROOM_CLOSED_SECOND_LEFT_LAST_EVENT_TOPIC = "Game-Room-Closed-Second-Left-Last-Event";
+	public static final Object USER_ADDED_AS_SECOND_PLAYER_EVENT_GROUP = "UserAddedAsSecondPlayerEventGroup4";
+	public static final String INIT_GAME_ROOM_COMPLETED_EVENT_TOPIC = "Init-Game-Room-Completed-Event";
 }
