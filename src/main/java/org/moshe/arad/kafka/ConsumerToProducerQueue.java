@@ -3,9 +3,11 @@ package org.moshe.arad.kafka;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import org.moshe.arad.kafka.events.BackgammonEvent;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Component
+@Scope("prototype")
 public class ConsumerToProducerQueue {
 
 	private static final int QUEUE_SIZE = 100000;

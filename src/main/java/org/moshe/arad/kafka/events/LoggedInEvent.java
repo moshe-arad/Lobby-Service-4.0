@@ -4,15 +4,25 @@ import java.util.Date;
 import java.util.UUID;
 
 import org.moshe.arad.entities.BackgammonUser;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-public class NewUserJoinedLobbyEvent extends BackgammonEvent {
+@Component
+@Scope("prototype")
+public class LoggedInEvent extends BackgammonEvent {
 
 	private BackgammonUser backgammonUser;
+
+	public LoggedInEvent() {
+		
+	}
 	
-	public NewUserJoinedLobbyEvent() {
+	public LoggedInEvent(BackgammonUser backgammonUser) {
+		super();
+		this.backgammonUser = backgammonUser;
 	}
 
-	public NewUserJoinedLobbyEvent(UUID uuid, int serviceId, int eventId, Date arrived, String clazz,
+	public LoggedInEvent(UUID uuid, int serviceId, int eventId, Date arrived, String clazz,
 			BackgammonUser backgammonUser) {
 		super(uuid, serviceId, eventId, arrived, clazz);
 		this.backgammonUser = backgammonUser;
@@ -20,7 +30,7 @@ public class NewUserJoinedLobbyEvent extends BackgammonEvent {
 
 	@Override
 	public String toString() {
-		return "NewUserJoinedLobbyEvent [backgammonUser=" + backgammonUser + "]";
+		return "LoggedInEvent [backgammonUser=" + backgammonUser + "]";
 	}
 
 	public BackgammonUser getBackgammonUser() {
@@ -29,5 +39,5 @@ public class NewUserJoinedLobbyEvent extends BackgammonEvent {
 
 	public void setBackgammonUser(BackgammonUser backgammonUser) {
 		this.backgammonUser = backgammonUser;
-	}	
+	}
 }

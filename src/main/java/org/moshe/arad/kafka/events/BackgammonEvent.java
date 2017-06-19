@@ -1,49 +1,33 @@
 package org.moshe.arad.kafka.events;
 
 import java.util.Date;
+import java.util.UUID;
 
 public abstract class BackgammonEvent {
 
+	private UUID uuid;
 	private int serviceId;
-	private String serviceName;
-	private int entityId;
-	private String entityType;
 	private int eventId;
-	private String eventType;
 	private Date arrived;
-	private Date departed;
+	private String clazz;
 	
 	public BackgammonEvent() {
 	}
-
-	public BackgammonEvent(int serviceId, String serviceName, int entityId, String entityType, int eventId,
-			String eventType) {
-		this.serviceId = serviceId;
-		this.serviceName = serviceName;
-		this.entityId = entityId;
-		this.entityType = entityType;
-		this.eventId = eventId;
-		this.eventType = eventType;
-		this.arrived = new Date();
-	}
-
-	public BackgammonEvent(int serviceId, String serviceName, int entityId, String entityType, int eventId,
-			String eventType, Date arrived) {
+	
+	public BackgammonEvent(UUID uuid, int serviceId, int eventId, Date arrived, String clazz) {
 		super();
+		this.uuid = uuid;
 		this.serviceId = serviceId;
-		this.serviceName = serviceName;
-		this.entityId = entityId;
-		this.entityType = entityType;
 		this.eventId = eventId;
-		this.eventType = eventType;
 		this.arrived = arrived;
+		this.clazz = clazz;
 	}
 
+	
 	@Override
 	public String toString() {
-		return "BackgammonEvent [serviceId=" + serviceId + ", serviceName=" + serviceName + ", entityId=" + entityId
-				+ ", entityType=" + entityType + ", eventId=" + eventId + ", eventType=" + eventType + ", arrived="
-				+ arrived + ", departed=" + departed + "]";
+		return "BackgammonEvent [uuid=" + uuid + ", serviceId=" + serviceId + ", eventId=" + eventId + ", arrived="
+				+ arrived + ", clazz=" + clazz + "]";
 	}
 
 	public int getServiceId() {
@@ -54,44 +38,12 @@ public abstract class BackgammonEvent {
 		this.serviceId = serviceId;
 	}
 
-	public String getServiceName() {
-		return serviceName;
-	}
-
-	public void setServiceName(String serviceName) {
-		this.serviceName = serviceName;
-	}
-
-	public int getEntityId() {
-		return entityId;
-	}
-
-	public void setEntityId(int entityId) {
-		this.entityId = entityId;
-	}
-
-	public String getEntityType() {
-		return entityType;
-	}
-
-	public void setEntityType(String entityType) {
-		this.entityType = entityType;
-	}
-
 	public int getEventId() {
 		return eventId;
 	}
 
 	public void setEventId(int eventId) {
 		this.eventId = eventId;
-	}
-
-	public String getEventType() {
-		return eventType;
-	}
-
-	public void setEventType(String eventType) {
-		this.eventType = eventType;
 	}
 
 	public Date getArrived() {
@@ -102,11 +54,19 @@ public abstract class BackgammonEvent {
 		this.arrived = arrived;
 	}
 
-	public Date getDeparted() {
-		return departed;
+	public UUID getUuid() {
+		return uuid;
 	}
 
-	public void setDeparted(Date departed) {
-		this.departed = departed;
+	public void setUuid(UUID uuid) {
+		this.uuid = uuid;
+	}
+
+	public String getClazz() {
+		return clazz;
+	}
+
+	public void setClazz(String clazz) {
+		this.clazz = clazz;
 	}	
 }

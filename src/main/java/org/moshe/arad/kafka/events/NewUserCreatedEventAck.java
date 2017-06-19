@@ -4,15 +4,17 @@ import java.util.Date;
 import java.util.UUID;
 
 import org.moshe.arad.entities.BackgammonUser;
+import org.springframework.stereotype.Component;
 
-public class NewUserCreatedEvent extends BackgammonEvent {
+@Component
+public class NewUserCreatedEventAck extends BackgammonEvent {
 
 	BackgammonUser backgammonUser;
 
-	public NewUserCreatedEvent() {
+	public NewUserCreatedEventAck() {
 	}
-	
-	public NewUserCreatedEvent(UUID uuid, int serviceId, int eventId, Date arrived, String clazz,
+
+	public NewUserCreatedEventAck(UUID uuid, int serviceId, int eventId, Date arrived, String clazz,
 			BackgammonUser backgammonUser) {
 		super(uuid, serviceId, eventId, arrived, clazz);
 		this.backgammonUser = backgammonUser;
@@ -29,5 +31,5 @@ public class NewUserCreatedEvent extends BackgammonEvent {
 
 	public void setBackgammonUser(BackgammonUser backgammonUser) {
 		this.backgammonUser = backgammonUser;
-	}	
+	}
 }
