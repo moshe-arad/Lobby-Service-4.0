@@ -14,6 +14,7 @@ import org.moshe.arad.kafka.consumers.config.SimpleConsumerConfig;
 import org.moshe.arad.kafka.events.BackgammonEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * 
@@ -32,6 +33,7 @@ public abstract class SimpleEventsConsumer implements Runnable, ISimpleEventCons
 	private boolean isRunning = true;
 	private ScheduledThreadPoolExecutor scheduledExecutor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(6);
 	private String topic;
+	
 	private SimpleConsumerConfig simpleConsumerConfig;
 	
 	public SimpleEventsConsumer() {

@@ -4,15 +4,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.moshe.arad.kafka.ConsumerToProducerQueue;
 import org.moshe.arad.kafka.events.BackgammonEvent;
 import org.moshe.arad.kafka.producers.ISimpleProducer;
 import org.moshe.arad.kafka.producers.config.SimpleProducerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -28,10 +31,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @Component
 @Scope("prototype")
-public class SimpleEventsProducer <T extends BackgammonEvent> implements ISimpleProducer<T>, Runnable {
+public class SimpleEventsProducer <T extends BackgammonEvent> implements ISimpleEventProducer<T>, Runnable {
 
 	private final Logger logger = LoggerFactory.getLogger(SimpleEventsProducer.class);
 	
+	@Autowired
 	private SimpleProducerConfig simpleProducerConfig;
 	
 	private ConsumerToProducerQueue consumerToProducerQueue;
@@ -39,6 +43,9 @@ public class SimpleEventsProducer <T extends BackgammonEvent> implements ISimple
 	private boolean isRunning = true;
 	private static final int PRODUCERS_NUM = 3;
 	private String topic;
+	private int numPeriod;
+	private int numInitialDelay;
+	private TimeUnit timeUnit;
 	
 	public SimpleEventsProducer() {
 	}
@@ -66,7 +73,15 @@ public class SimpleEventsProducer <T extends BackgammonEvent> implements ISimple
 		String eventJsonBlob = convertEventIntoJsonBlob(event);
 		logger.info("Sending message to topic = " + topic + ", JSON message = " + eventJsonBlob + ".");
 		ProducerRecord<String, String> record = new ProducerRecord<String, String>(topic, eventJsonBlob);
-		producer.send(record);
+		producer.send(record, new Callback() {
+			
+			@Override
+			public void onCompletion(RecordMetadata arg0, Exception ex) {
+				if (ex != null) {
+		        	ex.printStackTrace(); 
+		        }				
+			}
+		});
 		logger.info("Message sent.");
 		producer.close();
 		logger.info("Kafka producer closed.");
@@ -140,5 +155,20 @@ public class SimpleEventsProducer <T extends BackgammonEvent> implements ISimple
 
 	public void setConsumerToProducerQueue(ConsumerToProducerQueue consumerToProducerQueue) {
 		this.consumerToProducerQueue = consumerToProducerQueue;
+	}
+
+	@Override
+	public void setPeriod(int num) {
+		this.numPeriod = num;
+	}
+
+	@Override
+	public void setInitialDelay(int num) {
+		this.numInitialDelay = num;
+	}
+
+	@Override
+	public void setTimeUnit(TimeUnit timeUnit) {
+		this.timeUnit = timeUnit;
 	}	
 }

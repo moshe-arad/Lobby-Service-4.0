@@ -12,7 +12,8 @@ public abstract class SimpleConsumerConfig {
 		properties.put("bootstrap.servers", KafkaUtils.SERVERS);
 		properties.put("key.deserializer", KafkaUtils.STRING_DESERIALIZER);
 		properties.put("value.deserializer", KafkaUtils.STRING_DESERIALIZER);
-		properties.put("auto.commit.enable", "false");
+		properties.put("enable.auto.commit", "false");
+//		properties.put("fetch.min.bytes", "1");
 	}
 
 	@Override

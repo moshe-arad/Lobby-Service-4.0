@@ -4,15 +4,12 @@ import java.io.IOException;
 import java.util.Date;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.moshe.arad.entities.Location;
+import org.moshe.arad.entities.Status;
 import org.moshe.arad.kafka.ConsumerToProducerQueue;
-import org.moshe.arad.kafka.consumers.config.SimpleConsumerConfig;
-import org.moshe.arad.kafka.events.NewUserCreatedEvent;
+import org.moshe.arad.kafka.events.NewUserCreatedEventAck;
 import org.moshe.arad.kafka.events.NewUserJoinedLobbyEvent;
-import org.moshe.arad.services.Lobby;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -20,29 +17,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 @Scope("prototype")
-public class NewUserCreatedEventConsumer extends SimpleEventsConsumer {
-
-	@Autowired
-	private Lobby lobby;
+public class NewUserCreatedEventAckConsumer extends SimpleEventsConsumer {
 	
 	private ConsumerToProducerQueue consumerToProducerQueue;
 	
-	Logger logger = LoggerFactory.getLogger(NewUserCreatedEventConsumer.class);
+	Logger logger = LoggerFactory.getLogger(NewUserCreatedEventAckConsumer.class);
 	
-	public NewUserCreatedEventConsumer() {
+	public NewUserCreatedEventAckConsumer() {
 	}
 
 	@Override
 	public void consumerOperations(ConsumerRecord<String,String> record) {
-		NewUserCreatedEvent newUserCreatedEvent = convertJsonBlobIntoEvent(record.value());
-		logger.info("New User Created Event record recieved, " + record.value());	             	                		               
-    	logger.info("adding new user to lobby...");
-    	lobby.addBackgammonUserToLobby(newUserCreatedEvent.getBackgammonUser());
+		NewUserCreatedEventAck newUserCreatedEventAck = convertJsonBlobIntoEvent(record.value());
+		logger.info("New User Created Event **Ack** record recieved, " + record.value());	             	                		               
+    	
     	logger.info("User added to lobby...");
     	logger.info("creating new user joined lobby event...");
-    	newUserCreatedEvent.getBackgammonUser().setLocation(Location.Lobby);
-    	NewUserJoinedLobbyEvent newUserJoinedLobbyEvent = new NewUserJoinedLobbyEvent(newUserCreatedEvent.getUuid(), 
-    			2, 2, new Date(),"newUserJoinedLobbyEvent", newUserCreatedEvent.getBackgammonUser());
+    	newUserCreatedEventAck.getBackgammonUser().setStatus(Status.InLobby);
+    	NewUserJoinedLobbyEvent newUserJoinedLobbyEvent = new NewUserJoinedLobbyEvent(newUserCreatedEventAck.getUuid(), 
+    			2, 2, new Date(),"NewUserJoinedLobbyEvent", newUserCreatedEventAck.getBackgammonUser());
     	logger.info("passing new user joined lobby event to producer...");
     	consumerToProducerQueue.getEventsQueue().put(newUserJoinedLobbyEvent);
 	}
@@ -55,10 +48,10 @@ public class NewUserCreatedEventConsumer extends SimpleEventsConsumer {
 		this.consumerToProducerQueue = consumerToProducerQueue;
 	}
 	
-	private NewUserCreatedEvent convertJsonBlobIntoEvent(String JsonBlob){
+	private NewUserCreatedEventAck convertJsonBlobIntoEvent(String JsonBlob){
 		ObjectMapper objectMapper = new ObjectMapper();
 		try {
-			return objectMapper.readValue(JsonBlob, NewUserCreatedEvent.class);
+			return objectMapper.readValue(JsonBlob, NewUserCreatedEventAck.class);
 		} catch (IOException e) {
 			logger.error("Falied to convert Json blob into Event...");
 			logger.error(e.getMessage());
