@@ -18,6 +18,7 @@ import org.moshe.arad.kafka.consumers.commands.OpenNewGameRoomCommandConsumer;
 import org.moshe.arad.kafka.consumers.config.AddUserAsSecondPlayerCommandConfig;
 import org.moshe.arad.kafka.consumers.config.AddUserAsWatcherCommandConfig;
 import org.moshe.arad.kafka.consumers.config.FromMongoWithoutSavingEventsConfig;
+import org.moshe.arad.kafka.consumers.config.InitDiceCompletedEventConfig;
 import org.moshe.arad.kafka.consumers.config.LeaveGameRoomCommandConfig;
 import org.moshe.arad.kafka.consumers.config.LoggedInEventAckConfig;
 import org.moshe.arad.kafka.consumers.config.LoggedOutEventConfig;
@@ -31,9 +32,11 @@ import org.moshe.arad.kafka.consumers.config.OpenByLeftLastEventConfig;
 import org.moshe.arad.kafka.consumers.config.OpenNewGameRoomCommandConfig;
 import org.moshe.arad.kafka.consumers.config.SecondLeftLastEventConfig;
 import org.moshe.arad.kafka.consumers.config.SimpleConsumerConfig;
+import org.moshe.arad.kafka.consumers.config.UserAddedAsSecondPlayerEventConfig;
 import org.moshe.arad.kafka.consumers.config.WatcherLeftLastEventConfig;
 import org.moshe.arad.kafka.consumers.events.FromMongoWithSavingEventsConsumer;
 import org.moshe.arad.kafka.consumers.events.FromMongoWithoutSavingEventsConsumer;
+import org.moshe.arad.kafka.consumers.events.InitDiceCompletedEventConsumer;
 import org.moshe.arad.kafka.consumers.events.LoggedInEventAckConsumer;
 import org.moshe.arad.kafka.consumers.events.LoggedOutEventConsumer;
 import org.moshe.arad.kafka.consumers.events.LoggedOutOpenByLeftBeforeGameStartedEventConsumer;
@@ -44,10 +47,12 @@ import org.moshe.arad.kafka.consumers.events.NewUserCreatedEventAckConsumer;
 import org.moshe.arad.kafka.consumers.events.OpenByLeftBeforeGameStartedEventConsumer;
 import org.moshe.arad.kafka.consumers.events.OpenByLeftLastEventConsumer;
 import org.moshe.arad.kafka.consumers.events.SecondLeftLastEventConsumer;
+import org.moshe.arad.kafka.consumers.events.UserAddedAsSecondPlayerEventConsumer;
 import org.moshe.arad.kafka.consumers.events.WatcherLeftLastEventConsumer;
 import org.moshe.arad.kafka.events.BackgammonEvent;
 import org.moshe.arad.kafka.events.ExistingUserJoinedLobbyEvent;
 import org.moshe.arad.kafka.events.GameRoomClosedEvent;
+import org.moshe.arad.kafka.events.InitGameRoomCompletedEvent;
 import org.moshe.arad.kafka.events.LoggedOutEvent;
 import org.moshe.arad.kafka.events.LoggedOutOpenByLeftBeforeGameStartedEvent;
 import org.moshe.arad.kafka.events.LoggedOutOpenByLeftEvent;
@@ -63,6 +68,7 @@ import org.moshe.arad.kafka.events.OpenByLeftBeforeGameStartedEvent;
 import org.moshe.arad.kafka.events.OpenByLeftEvent;
 import org.moshe.arad.kafka.events.OpenByLeftFirstEvent;
 import org.moshe.arad.kafka.events.OpenByLeftLastEvent;
+import org.moshe.arad.kafka.events.RollDiceGameRoomFoundEvent;
 import org.moshe.arad.kafka.events.SecondLeftEvent;
 import org.moshe.arad.kafka.events.SecondLeftFirstEvent;
 import org.moshe.arad.kafka.events.SecondLeftLastEvent;
@@ -272,6 +278,22 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	@Autowired
 	private SimpleEventsProducer<GameRoomClosedEvent> gameRoomClosedSecondLeftLastEventProducer;
 	
+	private UserAddedAsSecondPlayerEventConsumer userAddedAsSecondPlayerEventConsumer;
+	
+	@Autowired
+	private UserAddedAsSecondPlayerEventConfig userAddedAsSecondPlayerEventConfig;
+	
+	@Autowired
+	private SimpleEventsProducer<InitGameRoomCompletedEvent> initGameRoomCompletedEventProducer;
+	
+	private InitDiceCompletedEventConsumer initDiceCompletedEventConsumer;
+	
+	@Autowired
+	private InitDiceCompletedEventConfig initDiceCompletedEventConfig;
+	
+	@Autowired
+	private SimpleEventsProducer<RollDiceGameRoomFoundEvent> rollDiceGameRoomFoundEventProducer;
+	
 	private ExecutorService executor = Executors.newFixedThreadPool(6);
 	
 	private Logger logger = LoggerFactory.getLogger(AppInit.class);
@@ -343,6 +365,10 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	private ConsumerToProducerQueue secondLeftLastQueue;
 	
 	private ConsumerToProducerQueue gameRoomClosedSecondLeftLastQueue;
+	
+	private ConsumerToProducerQueue initGameRoomCompletedEventQueue;
+	
+	private ConsumerToProducerQueue initDiceCompletedEventQueue;
 	
 	public static final int NUM_CONSUMERS = 3;
 	
@@ -416,6 +442,8 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		gameRoomClosedWatcherLeftLastQueue = context.getBean(ConsumerToProducerQueue.class);
 		gameRoomClosedOpenByLeftLastQueue = context.getBean(ConsumerToProducerQueue.class);
 		gameRoomClosedSecondLeftLastQueue = context.getBean(ConsumerToProducerQueue.class);
+		initGameRoomCompletedEventQueue = context.getBean(ConsumerToProducerQueue.class);
+		initDiceCompletedEventQueue = context.getBean(ConsumerToProducerQueue.class);
 		
 		for(int i=0; i<NUM_CONSUMERS; i++){
 			newUserCreatedEventAckConsumer = context.getBean(NewUserCreatedEventAckConsumer.class);
@@ -471,6 +499,12 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 			secondLeftLastEventConsumer = context.getBean(SecondLeftLastEventConsumer.class);
 			initSingleConsumer(secondLeftLastEventConsumer, KafkaUtils.SECOND_LEFT_LAST_EVENT_TOPIC, secondLeftLastEventConfig, gameRoomClosedSecondLeftLastQueue);
 			
+			userAddedAsSecondPlayerEventConsumer =context.getBean(UserAddedAsSecondPlayerEventConsumer.class);
+			initSingleConsumer(userAddedAsSecondPlayerEventConsumer, KafkaUtils.USER_ADDED_AS_SECOND_PLAYER_EVENT_TOPIC, userAddedAsSecondPlayerEventConfig, initGameRoomCompletedEventQueue);
+			
+			initDiceCompletedEventConsumer = context.getBean(InitDiceCompletedEventConsumer.class);
+			initSingleConsumer(initDiceCompletedEventConsumer, KafkaUtils.INIT_DICE_COMPLETED_EVENT_TOPIC, initDiceCompletedEventConfig, initDiceCompletedEventQueue);
+			
 			executeProducersAndConsumers(Arrays.asList(newUserCreatedEventAckConsumer, 
 					loggedInEventAckConsumer,
 					fromMongoWithoutSavingEventsConsumer,
@@ -482,7 +516,9 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 					openByLeftBeforeGameStartedEventConsumer,
 					watcherLeftLastEventConsumer,
 					openByLeftLastEventConsumer,
-					secondLeftLastEventConsumer));
+					secondLeftLastEventConsumer,
+					userAddedAsSecondPlayerEventConsumer,
+					initDiceCompletedEventConsumer));
 		}
 	}
 
@@ -563,6 +599,10 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 		
 		initSingleProducer(gameRoomClosedSecondLeftLastEventProducer, KafkaUtils.GAME_ROOM_CLOSED_SECOND_LEFT_LAST_EVENT_TOPIC, gameRoomClosedSecondLeftLastQueue);
 		
+		initSingleProducer(initGameRoomCompletedEventProducer, KafkaUtils.INIT_GAME_ROOM_COMPLETED_EVENT_TOPIC, initGameRoomCompletedEventQueue);
+		
+		initSingleProducer(rollDiceGameRoomFoundEventProducer, KafkaUtils.ROLL_DICE_GAME_ROOM_FOUND_EVENT_TOPIC, initDiceCompletedEventQueue);
+		
 		executeProducersAndConsumers(Arrays.asList(newUserJoinedLobbyEventsProducer, 
 				existingUserJoinedLobbyEventsProducer,
 				newGameRoomOpenedEventProducer,
@@ -595,7 +635,9 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 				openByLeftLastEventProducer,
 				gameRoomClosedOpenByLeftLastEventProducer,
 				secondLeftLastEventProducer,
-				gameRoomClosedSecondLeftLastEventProducer));		
+				gameRoomClosedSecondLeftLastEventProducer,
+				initGameRoomCompletedEventProducer,
+				rollDiceGameRoomFoundEventProducer));		
 	}
 
 	@Override
