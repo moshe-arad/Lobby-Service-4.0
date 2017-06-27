@@ -20,7 +20,7 @@ public class SimpleProducerConfig {
 //		properties.put("linger.ms", "5");
 //		properties.put("max.request.size", "163840");
 		properties.put("block.on.buffer.full", "true");
-		properties.put("retries", "0");
+		properties.put("retries", "5000");
 	}
 
 	@Override
