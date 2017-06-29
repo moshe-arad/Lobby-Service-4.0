@@ -40,7 +40,7 @@ public class AddUserAsSecondPlayerCommandConsumer extends SimpleCommandsConsumer
 		
 		GameRoom gameRoomToAddSecondPlayer = lobbyRepository.getGameRoomToAddWatcherToOrAddSecondPlayer(addUserAsSecondPlayerCommand.getGameRoomName(), addUserAsSecondPlayerCommand.getUsername());
 		
-		if(gameRoomToAddSecondPlayer != null){												
+		if(gameRoomToAddSecondPlayer != null && gameRoomToAddSecondPlayer.getSecondPlayer().equals("")){												
 			logger.info("Validation passed...");
 			logger.info("Will add user as second player...");
 			
