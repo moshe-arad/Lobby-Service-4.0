@@ -17,6 +17,7 @@ import org.moshe.arad.kafka.consumers.commands.LeaveGameRoomCommandConsumer;
 import org.moshe.arad.kafka.consumers.commands.OpenNewGameRoomCommandConsumer;
 import org.moshe.arad.kafka.consumers.config.AddUserAsSecondPlayerCommandConfig;
 import org.moshe.arad.kafka.consumers.config.AddUserAsWatcherCommandConfig;
+import org.moshe.arad.kafka.consumers.config.FromMongoWithSavingEventsConfig;
 import org.moshe.arad.kafka.consumers.config.FromMongoWithoutSavingEventsConfig;
 import org.moshe.arad.kafka.consumers.config.InitDiceCompletedEventConfig;
 import org.moshe.arad.kafka.consumers.config.LeaveGameRoomCommandConfig;
@@ -119,6 +120,9 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 	
 	@Autowired
 	private FromMongoWithoutSavingEventsConfig fromMongoWithoutSavingEventsConfig;
+	
+	@Autowired
+	private FromMongoWithSavingEventsConfig fromMongoWithSavingEventsConfig;
 	
 	private OpenNewGameRoomCommandConsumer openNewGameRoomCommandConsumer;
 	
@@ -505,6 +509,9 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 			initDiceCompletedEventConsumer = context.getBean(InitDiceCompletedEventConsumer.class);
 			initSingleConsumer(initDiceCompletedEventConsumer, KafkaUtils.INIT_DICE_COMPLETED_EVENT_TOPIC, initDiceCompletedEventConfig, initDiceCompletedEventQueue);
 			
+			fromMongoWithSavingEventsConsumer = context.getBean(FromMongoWithSavingEventsConsumer.class);
+			initSingleConsumer(fromMongoWithSavingEventsConsumer, KafkaUtils.TO_LOBBY_FROM_MONGO_EVENTS_WITH_SAVING_TOPIC, fromMongoWithSavingEventsConfig, null);
+			
 			executeProducersAndConsumers(Arrays.asList(newUserCreatedEventAckConsumer, 
 					loggedInEventAckConsumer,
 					fromMongoWithoutSavingEventsConsumer,
@@ -518,13 +525,14 @@ public class AppInit implements ApplicationContextAware, IAppInitializer {
 					openByLeftLastEventConsumer,
 					secondLeftLastEventConsumer,
 					userAddedAsSecondPlayerEventConsumer,
-					initDiceCompletedEventConsumer));
+					initDiceCompletedEventConsumer,
+					fromMongoWithSavingEventsConsumer));
 		}
 	}
 
 	@Override
 	public void initKafkaCommandsProducers() {
-		initSingleProducer(pullEventsWithSavingCommandsProducer, 20, 20, TimeUnit.MINUTES, KafkaUtils.LOBBY_SERVICE_PULL_EVENTS_WITH_SAVING_COMMAND_TOPIC, null);
+		initSingleProducer(pullEventsWithSavingCommandsProducer, 5, 1, TimeUnit.MINUTES, KafkaUtils.LOBBY_SERVICE_PULL_EVENTS_WITH_SAVING_COMMAND_TOPIC, null);
 		
 		executeProducersAndConsumers(Arrays.asList(pullEventsWithSavingCommandsProducer));
 	}

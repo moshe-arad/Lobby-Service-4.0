@@ -5,5 +5,6 @@ public enum Status {
 	LoggedIn,
 	InLobby,
 	InGame,
+	Watching,
 	LoggedOut
 }

@@ -128,7 +128,7 @@ public class SnapshotAPI implements ApplicationContextAware {
 			HashMap<Object, Object> usersOpenedByHash = new HashMap<>(usersOpenedBy);
 			
 			if(gameRooms != null) result.setRooms(gameRoomsHash);
-			if(usersOpenedBy != null) result.setRooms(usersOpenedByHash);
+			if(usersOpenedBy != null) result.setUsersOpenedBy(usersOpenedByHash);
 			
 			return result;
 		}
@@ -162,7 +162,7 @@ public class SnapshotAPI implements ApplicationContextAware {
 		return producer.getUuid();
 	}
 	
-	public void updateLatestSnapshot(Snapshot snapshot){
+	public void updateLatestSnapshot(Snapshot snapshot, Date latestEventDate){
 		
 		readWriteLock.writeLock().lock();
 		
@@ -181,6 +181,8 @@ public class SnapshotAPI implements ApplicationContextAware {
 		
 		redisTemplate.opsForHash().putAll(GAME_ROOMS, snapshot.getRooms());
 		redisTemplate.opsForHash().putAll(USERS_OPENED_BY, snapshot.getUsersOpenedBy());
+		
+		saveLatestSnapshotDate(latestEventDate);
 		
 		readWriteLock.writeLock().unlock();				
 	}

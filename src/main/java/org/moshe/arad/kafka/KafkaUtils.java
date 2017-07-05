@@ -85,4 +85,5 @@ public class KafkaUtils {
 	public static final String INIT_DICE_COMPLETED_EVENT_GROUP = "InitDiceCompletedEventGroup2";
 	public static final String INIT_DICE_COMPLETED_EVENT_TOPIC = "Init-Dice-Completed-Event";
 	public static final String ROLL_DICE_GAME_ROOM_FOUND_EVENT_TOPIC = "Roll-Dice-Game-Room-Found-Event";
+	public static final String TO_LOBBY_FROM_MONGO_EVENTS_WITH_SAVING_TOPIC = "To-Lobby-From-Mongo-Events-With-Saving";
 }
